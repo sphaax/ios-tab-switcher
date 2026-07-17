@@ -18,6 +18,8 @@ Visual reference: [docs/reference.jpg](docs/reference.jpg)
 - **Click the ✕**: closes the tab.
 - **+ button**: opens a new tab (in the current mode: normal, private, or inside the open group).
 - **Escape**: leaves the group detail view, otherwise closes the switcher and returns to the previously active tab.
+- **Search** (pill on the top-left): live-filters cards by title/URL in every view (and group rows by name). Enter opens the first match; Escape clears the query.
+- With several Chrome windows open, the grid splits into one section per window, your current window first.
 - Tabs belonging to a Chrome tab group show a ring in the group's color. The active tab is outlined in blue.
 - **Pinned tabs** remain regular cards, identified by a pin badge on the top-left of their preview. Clicking the badge unpins the tab.
 
@@ -52,5 +54,5 @@ The `<all_urls>` host permission is required: without it, `captureVisibleTab` de
 
 ## Out of scope (v1)
 
-- Search, drag & drop reordering.
+- Drag & drop reordering.
 - Pinning tabs from the switcher (unpinning works; pinning is done via Chrome's native tab context menu).
