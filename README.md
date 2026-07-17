@@ -1,8 +1,8 @@
 # ios-tab-switcher
 
-Chrome extension (Manifest V3) that replicates the Chrome iOS tab switcher on desktop: a responsive grid of tab cards with live screenshot previews, dark theme, tab counter and floating new-tab button.
+Chrome extension (Manifest V3) that replicates the Chrome iOS tab switcher on desktop: a responsive grid of landscape tab cards with live screenshot previews, dark theme, tab counter and floating new-tab button. The card layout follows the iPad version of the switcher, which suits a wide desktop screen better than the phone's portrait cards.
 
-Visual reference: [docs/reference.jpg](docs/reference.jpg)
+Visual references: [docs/reference.jpg](docs/reference.jpg) (phone), [docs/reference-ipad.jpg](docs/reference-ipad.jpg) (iPad)
 
 ## Installation (developer mode)
 
@@ -31,7 +31,7 @@ Visual reference: [docs/reference.jpg](docs/reference.jpg)
 
 ## How previews work
 
-`chrome.tabs.captureVisibleTab()` can only capture the currently visible tab. The service worker therefore captures each tab **at the moment you view it** (activation or load completion, throttled to ~1 s), crops the capture to the 2:3 card ratio (center slice), resizes it to 480×720 (JPEG quality 70) and stores it in IndexedDB.
+`chrome.tabs.captureVisibleTab()` can only capture the currently visible tab. The service worker therefore captures each tab **at the moment you view it** (activation or load completion, throttled to ~1 s), crops the capture to the 16:10 card ratio (center slice), resizes it to 512×320 (JPEG quality 70) and stores it in IndexedDB.
 
 Consequences:
 

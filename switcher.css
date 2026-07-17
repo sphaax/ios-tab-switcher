@@ -265,9 +265,9 @@ body[data-view="group-detail"] {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  padding: 92px 20px 120px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 92px 24px 120px;
   max-width: 1600px;
   margin: 0 auto;
 }
@@ -292,7 +292,7 @@ body[data-view="group-detail"] .grid {
 .card {
   display: flex;
   flex-direction: column;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 4 / 3;
   border-radius: var(--card-radius);
   overflow: hidden;
   background: var(--card-bg);
@@ -602,8 +602,7 @@ body[data-view="group-detail"] .grid {
 .fab {
   position: fixed;
   bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 28px;
   width: 62px;
   height: 62px;
   border: none;
@@ -618,12 +617,12 @@ body[data-view="group-detail"] .grid {
 }
 
 .fab:hover {
-  transform: translateX(-50%) scale(1.06);
+  transform: scale(1.06);
   filter: brightness(1.08);
 }
 
 .fab:active {
-  transform: translateX(-50%) scale(0.96);
+  transform: scale(0.96);
 }
 
 /* FAB blanc en navigation privée, squircle en mode groupes, pastel en détail. */
