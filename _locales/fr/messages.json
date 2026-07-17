@@ -58,6 +58,12 @@
   "searchPlaceholder": {
     "message": "Rechercher un onglet"
   },
+  "muteTab": {
+    "message": "Couper le son de l’onglet"
+  },
+  "unmuteTab": {
+    "message": "Réactiver le son de l’onglet"
+  },
   "thisWindow": {
     "message": "Cette fenêtre"
   },

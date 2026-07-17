@@ -58,6 +58,12 @@
   "searchPlaceholder": {
     "message": "Search tabs"
   },
+  "muteTab": {
+    "message": "Mute tab"
+  },
+  "unmuteTab": {
+    "message": "Unmute tab"
+  },
   "thisWindow": {
     "message": "This window"
   },
