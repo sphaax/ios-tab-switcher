@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Extension build output
 dist/
+
+# Store screenshots (contain personal tab content)
+store-screenshots/

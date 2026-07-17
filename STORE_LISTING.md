@@ -137,6 +137,9 @@ https://github.com/sphaax/ios-tab-switcher/blob/main/PRIVACY.md
 
 - **Store icon**: 128×128 PNG — use `icons/icon128.png` (already in the repo).
 - **Screenshots**: 1–5 required, **1280×800** or 640×400, PNG or JPEG (1280×800 recommended).
+  Take raw captures of the switcher at any size, drop them in `store-screenshots/raw/`,
+  then run `python make-screenshots.py` to convert them to exact 1280×800 images in
+  `store-screenshots/out/` (scaled without distortion, padded with black to match the UI).
   Suggested set, using your own real switcher captures:
   1. The main grid full of cards — the hero shot. Caption: "All your tabs at a glance."
   2. Search in action (a query typed, grid filtered). Caption: "Type to find any tab instantly."
