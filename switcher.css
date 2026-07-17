@@ -79,7 +79,7 @@ body[data-view="group-detail"] {
 }
 
 .search-pill input {
-  width: 150px;
+  width: 185px;
   height: 24px;
   padding: 0;
   border: none;
@@ -88,15 +88,15 @@ body[data-view="group-detail"] {
   font-family: inherit;
   font-size: 17px;
   line-height: 24px;
-  /* Nudge to optically center the text body: Segoe UI has an asymmetric
-     ascent/descent that leaves the letters sitting slightly high in the box. */
-  transform: translateY(1px);
+  /* Optically center the text: Segoe UI's asymmetric ascent/descent leaves
+     the ink sitting ~2.5px below the box center, so lift it back up. */
+  transform: translateY(-2.5px);
   outline: none;
   transition: width 0.2s ease;
 }
 
 .search-pill:focus-within input {
-  width: 230px;
+  width: 260px;
 }
 
 .search-pill input::placeholder {
