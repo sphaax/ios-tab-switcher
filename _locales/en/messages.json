@@ -58,6 +58,12 @@
   "searchPlaceholder": {
     "message": "Search tabs"
   },
+  "supportBy": {
+    "message": "made by sphaax"
+  },
+  "supportTooltip": {
+    "message": "Support sphaax on Ko-fi"
+  },
   "muteTab": {
     "message": "Mute tab"
   },

@@ -58,6 +58,12 @@
   "searchPlaceholder": {
     "message": "Rechercher un onglet"
   },
+  "supportBy": {
+    "message": "par sphaax"
+  },
+  "supportTooltip": {
+    "message": "Soutenir sphaax sur Ko-fi"
+  },
   "muteTab": {
     "message": "Couper le son de l’onglet"
   },

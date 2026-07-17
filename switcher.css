@@ -164,6 +164,37 @@ body[data-view="group-detail"] {
   color: #000;
 }
 
+/* ---------- Lien de soutien (discret, haut-droite) ---------- */
+
+.support-link {
+  position: fixed;
+  top: 38px;
+  right: 24px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #6b6f76;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.support-link:hover {
+  color: #c8cbd1;
+}
+
+.support-link .heart {
+  width: 13px;
+  height: 13px;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.support-link:hover .heart {
+  color: #ff5a7a;
+  transform: scale(1.15);
+}
+
 /* ---------- Barre de titre du groupe (vue détail) ---------- */
 
 .detail-bar {

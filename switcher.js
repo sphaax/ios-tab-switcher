@@ -14,6 +14,13 @@ for (const el of document.querySelectorAll('[data-i18n-title]')) {
 for (const el of document.querySelectorAll('[data-i18n-placeholder]')) {
   el.placeholder = t(el.dataset.i18nPlaceholder);
 }
+for (const el of document.querySelectorAll('[data-i18n-text]')) {
+  el.textContent = t(el.dataset.i18nText);
+}
+
+// Lien de soutien (Ko-fi). Remplace l'URL si ton handle diffère.
+const SUPPORT_URL = 'https://ko-fi.com/sphaax';
+document.getElementById('support-link').href = SUPPORT_URL;
 
 // Palette officielle des groupes d'onglets Chrome.
 const GROUP_COLORS = {
