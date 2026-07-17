@@ -52,6 +52,20 @@ switcher.js      — card rendering, interactions, real-time updates
 
 The `<all_urls>` host permission is required: without it, `captureVisibleTab` demands a user gesture on the captured tab (`activeTab`), which is incompatible with automatic background capture.
 
+## Packaging for the Chrome Web Store
+
+Run the build script (Windows PowerShell) to produce an upload-ready zip in `dist/`:
+
+```
+powershell -ExecutionPolicy Bypass -File build.ps1
+```
+
+It bundles only the runtime files (`manifest.json`, `background.js`, `switcher.*`, `lib/`, `_locales/`, `icons/`) with `manifest.json` at the zip root — no git data, docs, or reference images. Upload the resulting `dist/ios-tab-switcher-v<version>.zip` at the [Chrome Web Store developer console](https://chrome.google.com/webstore/devconsole).
+
+## Privacy
+
+The extension collects and transmits nothing — all tab data and screenshot thumbnails stay on your device. See [PRIVACY.md](PRIVACY.md) for the full policy (usable as the Web Store privacy-policy URL).
+
 ## Out of scope (v1)
 
 - Drag & drop reordering.
