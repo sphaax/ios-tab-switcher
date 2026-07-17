@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "iOS Tab Switcher",
   "version": "0.1.0",
-  "description": "Le tab switcher de Chrome iOS, sur desktop : grille de cartes avec aperçus en direct de vos onglets.",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
   "permissions": ["tabs", "storage", "favicon", "tabGroups"],
   "host_permissions": ["<all_urls>"],
   "background": {
@@ -10,7 +11,7 @@
     "type": "module"
   },
   "action": {
-    "default_title": "Ouvrir le tab switcher"
+    "default_title": "__MSG_actionTitle__"
   },
   "commands": {
     "open-switcher": {
@@ -18,7 +19,7 @@
         "default": "Ctrl+Shift+Space",
         "mac": "MacCtrl+Shift+Space"
       },
-      "description": "Ouvrir le tab switcher"
+      "description": "__MSG_commandOpenSwitcher__"
     }
   }
 }

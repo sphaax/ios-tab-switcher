@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,17 +9,17 @@
 <body data-view="tabs">
   <header class="topbar">
     <div class="topbar-pill">
-      <button class="mode-btn" id="mode-incognito" title="Navigation privée">
+      <button class="mode-btn" id="mode-incognito" data-i18n-title="modePrivate">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M17.06 13c-1.86 0-3.42 1.33-3.82 3.1-.95-.41-1.82-.3-2.48-.01C10.35 14.31 8.79 13 6.94 13 4.77 13 3 14.79 3 17s1.77 4 3.94 4c2.06 0 3.74-1.62 3.9-3.68.34-.24 1.23-.69 2.32.02.18 2.05 1.84 3.66 3.9 3.66 2.17 0 3.94-1.79 3.94-4s-1.77-4-3.94-4M6.94 19.86c-1.56 0-2.81-1.28-2.81-2.86s1.26-2.86 2.81-2.86c1.56 0 2.81 1.28 2.81 2.86s-1.25 2.86-2.81 2.86m10.12 0c-1.56 0-2.81-1.28-2.81-2.86s1.25-2.86 2.81-2.86 2.82 1.28 2.82 2.86-1.27 2.86-2.82 2.86M22 10.5H2V12h20zm-6.47-7.87c-.22-.49-.78-.75-1.31-.58L12 2.79l-2.23-.74-.05-.01c-.53-.15-1.09.13-1.29.64L6 9h12l-2.44-6.32z"/>
         </svg>
       </button>
       <span class="pill-sep" id="sep-1" hidden></span>
-      <button class="mode-btn active" id="mode-tabs" title="Onglets ouverts">
+      <button class="mode-btn active" id="mode-tabs" data-i18n-title="modeTabs">
         <span class="counter-box" id="tab-count">0</span>
       </button>
       <span class="pill-sep" id="sep-2" hidden></span>
-      <button class="mode-btn" id="mode-groups" title="Groupes d'onglets">
+      <button class="mode-btn" id="mode-groups" data-i18n-title="modeGroups">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm8-2h8v8h-8zm2 2v4h4v-4z"/>
         </svg>
@@ -29,12 +29,12 @@
 
   <div class="detail-bar" id="detail-bar" hidden>
     <div class="detail-title">
-      <button class="detail-dot" id="detail-dot" title="Changer la couleur du groupe"></button>
+      <button class="detail-dot" id="detail-dot" data-i18n-title="changeGroupColor"></button>
       <input class="detail-name" id="detail-name" maxlength="60" spellcheck="false"
-             placeholder="Nommer le groupe" title="Renommer le groupe">
+             data-i18n-placeholder="nameGroupPlaceholder" data-i18n-title="renameGroup">
       <div class="color-picker" id="color-picker" hidden></div>
     </div>
-    <button class="detail-close" id="detail-close" title="Fermer le groupe">
+    <button class="detail-close" id="detail-close" data-i18n-title="closeGroup">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
         <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
       </svg>
@@ -50,7 +50,7 @@
     <p id="empty-subtitle"></p>
   </section>
 
-  <button class="fab" id="new-tab-btn" title="Nouvel onglet">
+  <button class="fab" id="new-tab-btn" data-i18n-title="newTab">
     <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true">
       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
     </svg>
@@ -61,7 +61,7 @@
       <div class="card-header">
         <img class="card-favicon" alt="">
         <span class="card-title"></span>
-        <button class="card-close" title="Fermer l'onglet">
+        <button class="card-close">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
             <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
           </svg>

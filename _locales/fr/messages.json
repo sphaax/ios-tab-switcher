@@ -1,0 +1,73 @@
+{
+  "extDescription": {
+    "message": "Le tab switcher de Chrome iOS, sur desktop : grille de cartes avec aperçus en direct de vos onglets."
+  },
+  "actionTitle": {
+    "message": "Ouvrir le tab switcher"
+  },
+  "commandOpenSwitcher": {
+    "message": "Ouvrir le tab switcher"
+  },
+  "pageTitle": {
+    "message": "Onglets"
+  },
+  "modePrivate": {
+    "message": "Navigation privée"
+  },
+  "modeTabs": {
+    "message": "Onglets ouverts"
+  },
+  "modeGroups": {
+    "message": "Groupes d’onglets"
+  },
+  "closeGroup": {
+    "message": "Fermer le groupe"
+  },
+  "renameGroup": {
+    "message": "Renommer le groupe"
+  },
+  "nameGroupPlaceholder": {
+    "message": "Nommer le groupe"
+  },
+  "changeGroupColor": {
+    "message": "Changer la couleur du groupe"
+  },
+  "newTab": {
+    "message": "Nouvel onglet"
+  },
+  "closeTab": {
+    "message": "Fermer l’onglet"
+  },
+  "unpinTab": {
+    "message": "Désépingler l’onglet"
+  },
+  "unnamedGroup": {
+    "message": "Groupe sans nom"
+  },
+  "oneTab": {
+    "message": "1 onglet"
+  },
+  "manyTabs": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "emptyPrivateTitle": {
+    "message": "Les onglets de navigation privée s’afficheront ici"
+  },
+  "emptyPrivateSubtitle": {
+    "message": "Pour naviguer sur le Web en mode privé, ajoutez un onglet"
+  },
+  "emptyPrivateNoAccess": {
+    "message": "Autorisez d’abord l’extension en navigation privée : chrome://extensions → iOS Tab Switcher → Détails → « Autoriser en mode navigation privée »"
+  },
+  "emptyGroupsTitle": {
+    "message": "Vos groupes d’onglets s’afficheront ici"
+  },
+  "emptyGroupsSubtitle": {
+    "message": "Regroupez des onglets dans Chrome (clic droit sur un onglet → « Ajouter l’onglet à un nouveau groupe ») ou créez-en un avec le bouton +."
+  }
+}

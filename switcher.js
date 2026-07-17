@@ -3,6 +3,18 @@
 
 import { getAllThumbs } from './lib/thumbs.js';
 
+// --- i18n : chaînes dans _locales/, langue de l'UI de Chrome ---
+const t = (key, substitutions) => chrome.i18n.getMessage(key, substitutions);
+
+document.documentElement.lang = chrome.i18n.getUILanguage();
+document.title = t('pageTitle');
+for (const el of document.querySelectorAll('[data-i18n-title]')) {
+  el.title = t(el.dataset.i18nTitle);
+}
+for (const el of document.querySelectorAll('[data-i18n-placeholder]')) {
+  el.placeholder = t(el.dataset.i18nPlaceholder);
+}
+
 // Palette officielle des groupes d'onglets Chrome.
 const GROUP_COLORS = {
   grey: '#5f6368',
@@ -118,13 +130,13 @@ function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant }) {
     favicon.hidden = true;
   }
 
-  card.querySelector('.card-title').textContent = tab.title || pageUrl || 'Nouvel onglet';
+  card.querySelector('.card-title').textContent = tab.title || pageUrl || t('newTab');
 
   const preview = card.querySelector('.card-preview');
   if (tab.pinned) {
     const badge = document.createElement('button');
     badge.className = 'pin-badge';
-    badge.title = "Désépingler l'onglet";
+    badge.title = t('unpinTab');
     badge.innerHTML =
       '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
       '<path d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/>' +
@@ -151,6 +163,7 @@ function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant }) {
   }
 
   card.addEventListener('click', () => activateTab(tab));
+  card.querySelector('.card-close').title = t('closeTab');
   card.querySelector('.card-close').addEventListener('click', (event) => {
     event.stopPropagation();
     chrome.tabs.remove(tab.id);
@@ -230,10 +243,8 @@ async function renderIncognito(incognitoTabs, stale) {
     if (stale()) return;
     showEmpty(
       'incognito',
-      "Les onglets de navigation privée s'afficheront ici",
-      allowed
-        ? 'Pour naviguer sur le Web en mode privé, ajoutez un onglet'
-        : "Autorisez d'abord l'extension en navigation privée : chrome://extensions → iOS Tab Switcher → Détails → « Autoriser en mode navigation privée »"
+      t('emptyPrivateTitle'),
+      allowed ? t('emptyPrivateSubtitle') : t('emptyPrivateNoAccess')
     );
     return;
   }
@@ -250,11 +261,7 @@ async function renderGroupsList(stale) {
   const groups = await chrome.tabGroups.query({});
   if (stale()) return;
   if (!groups.length) {
-    showEmpty(
-      'groups',
-      "Vos groupes d'onglets s'afficheront ici",
-      'Regroupez des onglets dans Chrome (clic droit sur un onglet → « Ajouter l’onglet à un nouveau groupe ») ou créez-en un avec le bouton +.'
-    );
+    showEmpty('groups', t('emptyGroupsTitle'), t('emptyGroupsSubtitle'));
     return;
   }
 
@@ -290,11 +297,11 @@ async function renderGroupsList(stale) {
       dot.style.background = GROUP_COLORS[group.color] || '#5f6368';
       const name = document.createElement('span');
       name.className = 'group-name';
-      name.textContent = group.title || 'Groupe sans nom';
+      name.textContent = group.title || t('unnamedGroup');
       nameRow.append(dot, name);
       const sub = document.createElement('div');
       sub.className = 'group-sub';
-      sub.textContent = tabs.length > 1 ? `${tabs.length} onglets` : '1 onglet';
+      sub.textContent = tabs.length > 1 ? t('manyTabs', [String(tabs.length)]) : t('oneTab');
       meta.append(nameRow, sub);
 
       row.append(mini, meta);

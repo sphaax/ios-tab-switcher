@@ -1,0 +1,73 @@
+{
+  "extDescription": {
+    "message": "The Chrome iOS tab switcher on desktop: a grid of cards with live previews of your tabs."
+  },
+  "actionTitle": {
+    "message": "Open the tab switcher"
+  },
+  "commandOpenSwitcher": {
+    "message": "Open the tab switcher"
+  },
+  "pageTitle": {
+    "message": "Tabs"
+  },
+  "modePrivate": {
+    "message": "Private browsing"
+  },
+  "modeTabs": {
+    "message": "Open tabs"
+  },
+  "modeGroups": {
+    "message": "Tab groups"
+  },
+  "closeGroup": {
+    "message": "Close group view"
+  },
+  "renameGroup": {
+    "message": "Rename group"
+  },
+  "nameGroupPlaceholder": {
+    "message": "Name the group"
+  },
+  "changeGroupColor": {
+    "message": "Change group color"
+  },
+  "newTab": {
+    "message": "New tab"
+  },
+  "closeTab": {
+    "message": "Close tab"
+  },
+  "unpinTab": {
+    "message": "Unpin tab"
+  },
+  "unnamedGroup": {
+    "message": "Unnamed group"
+  },
+  "oneTab": {
+    "message": "1 tab"
+  },
+  "manyTabs": {
+    "message": "$count$ tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "emptyPrivateTitle": {
+    "message": "Your private tabs will appear here"
+  },
+  "emptyPrivateSubtitle": {
+    "message": "To browse the web privately, add a tab"
+  },
+  "emptyPrivateNoAccess": {
+    "message": "First allow the extension in incognito: chrome://extensions → iOS Tab Switcher → Details → “Allow in Incognito”"
+  },
+  "emptyGroupsTitle": {
+    "message": "Your tab groups will appear here"
+  },
+  "emptyGroupsSubtitle": {
+    "message": "Group tabs in Chrome (right-click a tab → “Add tab to new group”) or create one with the + button."
+  }
+}
