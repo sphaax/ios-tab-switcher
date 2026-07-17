@@ -13,7 +13,7 @@ Visual references: [docs/reference.jpg](docs/reference.jpg) (phone), [docs/refer
 
 ## Usage
 
-- **Open/close the switcher**: click the extension icon, or press `Ctrl+Shift+Space` (also `Ctrl+Shift+Space` on Mac, using the physical Ctrl key). The shortcut is a toggle: from the switcher, it closes it and returns to the previous tab. Configurable in `chrome://extensions/shortcuts`.
+- **Open/close the switcher**: click the extension icon, or press `Ctrl+Shift+E` (also `Ctrl+Shift+E` on Mac, using the physical Ctrl key). The shortcut is a toggle: from the switcher, it closes it and returns to the previous tab. Configurable in `chrome://extensions/shortcuts`.
 - **Click a card**: activates the corresponding tab (and its window) and closes the switcher.
 - **Click the ✕**: closes the tab.
 - **+ button**: opens a new tab (in the current mode: normal, private, or inside the open group).
