@@ -611,6 +611,15 @@ searchInput.addEventListener('keydown', (event) => {
   }
 });
 
+// Taper au clavier n'importe où remplit directement la recherche.
+document.addEventListener('keydown', (event) => {
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.key.length !== 1) return; // ignore les touches non imprimables
+  const active = document.activeElement;
+  if (active === searchInput || active === detailName) return;
+  searchInput.focus(); // le caractère de cet appui ira dans le champ
+});
+
 // Échap : sort de la vue détail, sinon ferme le switcher.
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;

@@ -31,7 +31,7 @@ Visual references: [docs/reference.jpg](docs/reference.jpg) (phone), [docs/refer
 
 ## How previews work
 
-`chrome.tabs.captureVisibleTab()` can only capture the currently visible tab. The service worker therefore captures each tab **at the moment you view it** (activation or load completion, throttled to ~1 s), crops the capture to the 16:10 card ratio (center slice), resizes it to 512×320 (JPEG quality 70) and stores it in IndexedDB.
+`chrome.tabs.captureVisibleTab()` can only capture the currently visible tab. The service worker therefore captures each tab **at the moment you view it** (activation or load completion, throttled to ~1 s), crops the capture to the 16:9 preview ratio (center slice), resizes it to 512×288 (JPEG quality 70) and stores it in IndexedDB.
 
 Consequences:
 
