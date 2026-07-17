@@ -71,8 +71,12 @@ const modeButtons = {
 const sep1 = document.getElementById('sep-1');
 const sep2 = document.getElementById('sep-2');
 
+const searchInput = document.getElementById('search-input');
+
 let mode = 'tabs'; // 'tabs' | 'incognito' | 'groups'
+let searchQuery = ''; // filtre live sur titre/URL
 let sourceTabId = null; // l'onglet depuis lequel le switcher a été ouvert
+let sourceWindowId = null; // sa fenêtre : affichée en premier dans la grille
 let openGroupId = null; // groupe affiché en vue détail
 let openGroupTitle = ''; // titre au moment du rendu, pour détecter un changement
 let editingName = false; // gèle les re-renders pendant la saisie du nom
@@ -96,6 +100,15 @@ function releaseObjectUrl(tabId) {
     URL.revokeObjectURL(cached.url);
     objectUrls.delete(tabId);
   }
+}
+
+function matchesSearch(tab) {
+  if (!searchQuery) return true;
+  const query = searchQuery.toLowerCase();
+  return (
+    (tab.title || '').toLowerCase().includes(query) ||
+    (tab.url || tab.pendingUrl || '').toLowerCase().includes(query)
+  );
 }
 
 // Une seule carte est marquée active : l'onglet depuis lequel le switcher
@@ -193,23 +206,51 @@ function thumbSrcFromBlob(tabId, record) {
 // ---------- Rendu des vues ----------
 
 function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant }) {
-  const entries = tabs.map((tab) => ({ tab, isActive: isTabActive(tab, lastActive) }));
+  // Sections par fenêtre Chrome : la fenêtre d'origine d'abord, puis les
+  // autres. Avec une seule fenêtre, pas d'en-têtes — grille plate.
+  const primaryWindowId = sourceWindowId ?? selfTab.windowId;
+  const windowIds = [...new Set(tabs.map((t) => t.windowId))].sort((a, b) => {
+    if (a === primaryWindowId) return -1;
+    if (b === primaryWindowId) return 1;
+    return a - b;
+  });
+  const multiWindow = windowIds.length > 1;
+  const ordered = windowIds.flatMap((id) => tabs.filter((t) => t.windowId === id));
+
+  const entries = ordered.map((tab) => ({ tab, isActive: isTabActive(tab, lastActive) }));
   // La cascade d'apparition rayonne depuis la carte active (centrée à
   // l'écran après le scroll initial), pas depuis le coin haut-gauche.
   const activeIndex = Math.max(0, entries.findIndex((e) => e.isActive));
 
   const fragment = document.createDocumentFragment();
-  for (const [index, { tab, isActive }] of entries.entries()) {
-    fragment.appendChild(
-      buildCard(tab, {
-        thumbSrc: thumbSrcFor(tab),
-        isActive,
-        groupColor:
-          groupColorById && tab.groupId !== -1 ? groupColorById.get(tab.groupId) : null,
-        index: Math.abs(index - activeIndex),
-        variant,
-      })
-    );
+  let index = 0;
+  for (const [windowIndex, windowId] of windowIds.entries()) {
+    const windowEntries = entries.filter((e) => e.tab.windowId === windowId);
+    if (multiWindow) {
+      const label = document.createElement('h2');
+      label.className = 'window-label';
+      const name =
+        windowId === primaryWindowId
+          ? t('thisWindow')
+          : t('windowTitle', [String(windowIndex + 1)]);
+      const count =
+        windowEntries.length > 1 ? t('manyTabs', [String(windowEntries.length)]) : t('oneTab');
+      label.textContent = `${name} · ${count}`;
+      fragment.appendChild(label);
+    }
+    for (const { tab, isActive } of windowEntries) {
+      fragment.appendChild(
+        buildCard(tab, {
+          thumbSrc: thumbSrcFor(tab),
+          isActive,
+          groupColor:
+            groupColorById && tab.groupId !== -1 ? groupColorById.get(tab.groupId) : null,
+          index: Math.abs(index - activeIndex),
+          variant,
+        })
+      );
+      index++;
+    }
   }
   grid.replaceChildren(fragment);
 
@@ -230,7 +271,7 @@ async function renderTabs(normalTabs, stale) {
   ]);
   if (stale()) return;
   const groupColorById = new Map(groups.map((g) => [g.id, GROUP_COLORS[g.color] || '#5f6368']));
-  renderCards(normalTabs, {
+  renderCards(normalTabs.filter(matchesSearch), {
     thumbSrcFor: (tab) => thumbSrcFromBlob(tab.id, thumbs.get(tab.id)),
     lastActive: session.lastActive || {},
     groupColorById,
@@ -250,7 +291,7 @@ async function renderIncognito(incognitoTabs, stale) {
   }
   const store = await chrome.storage.session.get(null);
   if (stale()) return;
-  renderCards(incognitoTabs, {
+  renderCards(incognitoTabs.filter(matchesSearch), {
     thumbSrcFor: (tab) => store[`incog-${tab.id}`]?.dataUrl || null,
     lastActive: store.lastActive || {},
     variant: 'incog',
@@ -265,8 +306,14 @@ async function renderGroupsList(stale) {
     return;
   }
 
+  const visibleGroups = searchQuery
+    ? groups.filter((g) =>
+        (g.title || t('unnamedGroup')).toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : groups;
+
   const rows = await Promise.all(
-    groups.map(async (group) => {
+    visibleGroups.map(async (group) => {
       const tabs = await chrome.tabs.query({ groupId: group.id });
       const row = document.createElement('button');
       row.className = 'group-row';
@@ -345,7 +392,7 @@ async function renderGroupDetail(stale) {
     chrome.storage.session.get('lastActive'),
   ]);
   if (stale()) return;
-  renderCards(tabs, {
+  renderCards(tabs.filter(matchesSearch), {
     thumbSrcFor: (tab) => thumbSrcFromBlob(tab.id, thumbs.get(tab.id)),
     lastActive: session.lastActive || {},
     variant: 'tinted',
@@ -543,6 +590,27 @@ detailName.addEventListener('keydown', (event) => {
   }
 });
 
+// --- Recherche d'onglet ---
+
+searchInput.addEventListener('input', () => {
+  searchQuery = searchInput.value.trim();
+  scheduleRefresh();
+});
+
+searchInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    // Ouvre le premier résultat (carte, ou groupe en mode liste).
+    const first = grid.querySelector('.card') || groupsList.querySelector('.group-row');
+    first?.click();
+  } else if (event.key === 'Escape' && searchInput.value) {
+    // Échap avec du texte : efface la recherche (sans fermer le switcher).
+    event.stopPropagation();
+    searchInput.value = '';
+    searchQuery = '';
+    scheduleRefresh();
+  }
+});
+
 // Échap : sort de la vue détail, sinon ferme le switcher.
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;
@@ -631,6 +699,7 @@ chrome.runtime.onMessage.addListener((message) => {
   selfTab = await chrome.tabs.getCurrent();
   const { switcherSource } = await chrome.storage.session.get('switcherSource');
   sourceTabId = switcherSource?.tabId ?? null;
+  sourceWindowId = switcherSource?.windowId ?? null;
   if (sourceTabId != null) {
     try {
       const source = await chrome.tabs.get(sourceTabId);

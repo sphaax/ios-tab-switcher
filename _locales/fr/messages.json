@@ -55,6 +55,20 @@
       }
     }
   },
+  "searchPlaceholder": {
+    "message": "Rechercher un onglet"
+  },
+  "thisWindow": {
+    "message": "Cette fenêtre"
+  },
+  "windowTitle": {
+    "message": "Fenêtre $num$",
+    "placeholders": {
+      "num": {
+        "content": "$1"
+      }
+    }
+  },
   "emptyPrivateTitle": {
     "message": "Les onglets de navigation privée s’afficheront ici"
   },

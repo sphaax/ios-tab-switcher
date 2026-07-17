@@ -55,6 +55,48 @@ body[data-view="group-detail"] {
   pointer-events: none;
 }
 
+.search-pill {
+  position: absolute;
+  left: 16px;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 60px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  color: var(--pill-icon);
+  pointer-events: auto;
+}
+
+.search-pill svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.search-pill input {
+  width: 140px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: width 0.2s ease;
+}
+
+.search-pill:focus-within input {
+  width: 230px;
+}
+
+.search-pill input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .topbar-pill {
   display: flex;
   align-items: center;
@@ -232,6 +274,19 @@ body[data-view="group-detail"] {
 
 body[data-view="group-detail"] .grid {
   padding-top: 20px;
+}
+
+/* En-tête de section par fenêtre Chrome (visible avec plusieurs fenêtres). */
+.window-label {
+  grid-column: 1 / -1;
+  margin: 14px 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.window-label:first-child {
+  margin-top: 0;
 }
 
 .card {

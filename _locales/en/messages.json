@@ -55,6 +55,20 @@
       }
     }
   },
+  "searchPlaceholder": {
+    "message": "Search tabs"
+  },
+  "thisWindow": {
+    "message": "This window"
+  },
+  "windowTitle": {
+    "message": "Window $num$",
+    "placeholders": {
+      "num": {
+        "content": "$1"
+      }
+    }
+  },
   "emptyPrivateTitle": {
     "message": "Your private tabs will appear here"
   },
