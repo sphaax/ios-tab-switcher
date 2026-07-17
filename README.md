@@ -19,6 +19,7 @@ Référence visuelle : [docs/reference.jpg](docs/reference.jpg)
 - **Bouton +** : ouvre un nouvel onglet (dans le mode courant : normal, privé, ou dans le groupe ouvert).
 - **Échap** : sort de la vue détail d'un groupe, sinon ferme le switcher et revient à l'onglet précédemment actif.
 - Les onglets appartenant à un groupe Chrome affichent un liseré de la couleur du groupe. L'onglet actif est entouré d'une bordure bleue.
+- Les **onglets épinglés** restent des cartes normales, identifiées par un badge épingle en haut à gauche de leur aperçu. Clic sur le badge → désépingle l'onglet.
 
 ### Les trois modes (pilule supérieure)
 

@@ -121,6 +121,20 @@ function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant }) {
   card.querySelector('.card-title').textContent = tab.title || pageUrl || 'Nouvel onglet';
 
   const preview = card.querySelector('.card-preview');
+  if (tab.pinned) {
+    const badge = document.createElement('button');
+    badge.className = 'pin-badge';
+    badge.title = "Désépingler l'onglet";
+    badge.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+      '<path d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/>' +
+      '</svg>';
+    badge.addEventListener('click', (event) => {
+      event.stopPropagation();
+      chrome.tabs.update(tab.id, { pinned: false });
+    });
+    preview.appendChild(badge);
+  }
   if (thumbSrc) {
     const img = document.createElement('img');
     img.className = 'thumb';

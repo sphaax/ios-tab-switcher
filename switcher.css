@@ -323,11 +323,42 @@ body[data-view="group-detail"] .grid {
 }
 
 .card-preview {
+  position: relative;
   flex: 1;
   margin: 0 7px 7px;
   border-radius: 12px;
   overflow: hidden;
   background: var(--card-fallback-bg);
+}
+
+/* Badge épingle sur l'aperçu des onglets épinglés (clic = désépingler). */
+.pin-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(32, 33, 36, 0.72);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.pin-badge:hover {
+  background: rgba(32, 33, 36, 0.92);
+  transform: scale(1.12);
+}
+
+.pin-badge svg {
+  width: 15px;
+  height: 15px;
 }
 
 .card-preview img.thumb {
