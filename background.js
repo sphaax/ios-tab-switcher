@@ -3,12 +3,13 @@
 import { putThumb, deleteThumb, keepOnly } from './lib/thumbs.js';
 
 const SWITCHER_URL = chrome.runtime.getURL('switcher.html');
-// Les aperçus sont en paysage 16:9 (comme la capture desktop) : on recadre
-// la capture sur ce ratio AVANT de redimensionner, pour que chaque pixel
-// stocké soit un pixel affiché (sinon : flou) et que la page remplisse la
-// carte sans marge.
+// Les aperçus sont en paysage 2:1, proche de la zone visible d'une fenêtre
+// desktop maximisée (pleine largeur, hauteur réduite par la barre des tâches
+// et l'UI de Chrome) : recadrage sur ce ratio AVANT de redimensionner, pour
+// que chaque pixel stocké soit un pixel affiché (sinon : flou) et que la page
+// remplisse la carte sans rogner les bords.
 const THUMB_WIDTH = 512;
-const THUMB_HEIGHT = 288;
+const THUMB_HEIGHT = 256;
 const JPEG_QUALITY = 0.7;
 const CAPTURE_THROTTLE_MS = 1000;
 // Petit délai avant capture pour laisser la page finir de peindre.
@@ -43,7 +44,7 @@ async function captureTab(tabId) {
   const blob = await (await fetch(dataUrl)).blob();
   const bitmap = await createImageBitmap(blob);
 
-  // Recadrage "cover" au ratio 16:9 : tranche centrale si la source est plus
+  // Recadrage "cover" au ratio 2:1 : tranche centrale si la source est plus
   // large, partie haute si elle est plus étroite.
   const targetAspect = THUMB_WIDTH / THUMB_HEIGHT;
   let cropWidth = bitmap.width;
