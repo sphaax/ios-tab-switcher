@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "The Chrome iOS tab switcher on desktop: a grid of cards with live previews of your tabs."
+    "message": "An iOS-style tab switcher for desktop Chrome: a grid of cards with live previews of your tabs."
   },
   "actionTitle": {
     "message": "Open the tab switcher"
@@ -82,7 +82,7 @@
     "message": "To browse the web privately, add a tab"
   },
   "emptyPrivateNoAccess": {
-    "message": "First allow the extension in incognito: chrome://extensions → iOS Tab Switcher → Details → “Allow in Incognito”"
+    "message": "First allow the extension in incognito: chrome://extensions → Tab Switcher (iOS Style) → Details → “Allow in Incognito”"
   },
   "emptyGroupsTitle": {
     "message": "Your tab groups will appear here"

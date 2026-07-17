@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "Le tab switcher de Chrome iOS, sur desktop : grille de cartes avec aperçus en direct de vos onglets."
+    "message": "Un sélecteur d’onglets façon iOS pour Chrome desktop : grille de cartes avec aperçus en direct de vos onglets."
   },
   "actionTitle": {
     "message": "Ouvrir le tab switcher"
@@ -82,7 +82,7 @@
     "message": "Pour naviguer sur le Web en mode privé, ajoutez un onglet"
   },
   "emptyPrivateNoAccess": {
-    "message": "Autorisez d’abord l’extension en navigation privée : chrome://extensions → iOS Tab Switcher → Détails → « Autoriser en mode navigation privée »"
+    "message": "Autorisez d’abord l’extension en navigation privée : chrome://extensions → Tab Switcher (iOS Style) → Détails → « Autoriser en mode navigation privée »"
   },
   "emptyGroupsTitle": {
     "message": "Vos groupes d’onglets s’afficheront ici"

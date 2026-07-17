@@ -1,8 +1,8 @@
-# Privacy Policy — iOS Tab Switcher
+# Privacy Policy — Tab Switcher (iOS Style)
 
 _Last updated: 17 July 2026_
 
-iOS Tab Switcher is a browser extension that shows your open tabs as a grid of
+Tab Switcher (iOS Style) is a browser extension that shows your open tabs as a grid of
 cards with screenshot previews. **It does not collect, transmit, sell, or share
 any of your data.** Everything the extension reads or stores stays on your own
 device.

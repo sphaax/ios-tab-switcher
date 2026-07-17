@@ -1,6 +1,6 @@
-# ios-tab-switcher
+# Tab Switcher (iOS Style)
 
-Chrome extension (Manifest V3) that replicates the Chrome iOS tab switcher on desktop: a responsive grid of landscape tab cards with live screenshot previews, dark theme, tab counter and floating new-tab button. The card layout follows the iPad version of the switcher, which suits a wide desktop screen better than the phone's portrait cards.
+Chrome extension (Manifest V3) that brings an iOS-style tab switcher to desktop: a responsive grid of landscape tab cards with live screenshot previews, dark theme, tab counter and floating new-tab button. The card layout follows the iPad version of the switcher, which suits a wide desktop screen better than the phone's portrait cards.
 
 Visual references: [docs/reference.jpg](docs/reference.jpg) (phone), [docs/reference-ipad.jpg](docs/reference-ipad.jpg) (iPad)
 
