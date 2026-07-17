@@ -1,0 +1,570 @@
+:root {
+  --bg: #000;
+  --pill-bg: rgba(44, 44, 46, 0.92);
+  --pill-icon: #e8eaed;
+  --card-radius: 20px;
+  --card-bg: #ffffff;
+  --card-header-text: #202124;
+  --card-fallback-bg: #e8eaed;
+  --accent: #4285f4;
+  --fab-bg: #7cacf8;
+  --text-secondary: #9aa0a6;
+  --group-base: #5f6368;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* L'attribut hidden doit gagner contre nos display: flex/grid,
+   sinon les vues masquées restent visibles en permanence. */
+[hidden] {
+  display: none !important;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+  transition: background 0.3s ease;
+}
+
+/* Vue détail d'un groupe : tout l'écran se teinte de la couleur du groupe. */
+body[data-view="group-detail"] {
+  background: color-mix(in srgb, var(--group-base) 22%, #131112);
+}
+
+/* ---------- Barre supérieure flottante ---------- */
+
+.topbar {
+  position: fixed;
+  top: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.topbar-pill {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 50px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--pill-icon);
+  cursor: pointer;
+}
+
+.mode-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mode-btn.active {
+  background: #fff;
+  color: #000;
+}
+
+.pill-sep {
+  width: 1.5px;
+  height: 24px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.counter-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 5px;
+  border: 2.5px solid var(--pill-icon);
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--pill-icon);
+}
+
+.mode-btn.active .counter-box {
+  border-color: #000;
+  color: #000;
+}
+
+/* ---------- Barre de titre du groupe (vue détail) ---------- */
+
+.detail-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 96px 24px 0;
+}
+
+.detail-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 22px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--group-base) 32%, #1a1718);
+}
+
+.detail-dot {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--group-base) 70%, #fff);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.detail-dot:hover {
+  transform: scale(1.25);
+}
+
+.detail-name {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 700;
+  min-width: 40px;
+}
+
+.detail-name:focus {
+  outline: none;
+}
+
+.detail-name::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.color-picker {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 20;
+  display: flex;
+  gap: 9px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: #2a2a2c;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+}
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  border: 2.5px solid transparent;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.swatch:hover {
+  transform: scale(1.15);
+}
+
+.swatch.current {
+  border-color: #fff;
+}
+
+.detail-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+}
+
+.detail-close:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+/* ---------- Grille de cartes ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 92px 20px 120px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+body[data-view="group-detail"] .grid {
+  padding-top: 20px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  background: var(--card-bg);
+  cursor: pointer;
+  animation: card-in 0.35s ease-out backwards;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.card.is-active {
+  outline: 4px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.card.in-group {
+  box-shadow: 0 0 0 3px var(--group-color);
+}
+
+.card.closing {
+  transform: scale(0.85);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  flex-shrink: 0;
+  padding: 0 8px 0 14px;
+  background: transparent;
+}
+
+.card-favicon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.card-title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--card-header-text);
+}
+
+.card-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #5f6368;
+  cursor: pointer;
+}
+
+.card-close:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #202124;
+}
+
+.card-preview {
+  flex: 1;
+  margin: 0 7px 7px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card-fallback-bg);
+}
+
+.card-preview img.thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+}
+
+/* Fallback : grand favicon centré, façon Chrome iOS onglet non chargé */
+.card-preview .fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.card-preview .fallback img {
+  width: 48px;
+  height: 48px;
+}
+
+/* Variante incognito : carte sombre, titre clair, actif cerclé de blanc. */
+.card.incog {
+  background: #2b2b2d;
+}
+
+.card.incog .card-title {
+  color: #f1f3f4;
+}
+
+.card.incog .card-close {
+  color: #9aa0a6;
+}
+
+.card.incog .card-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f1f3f4;
+}
+
+.card.incog .card-preview {
+  background: #3a3a3c;
+}
+
+.card.incog.is-active {
+  outline-color: #fff;
+}
+
+/* Variante teintée (vue détail de groupe) : header pastel de la couleur. */
+.card.tinted {
+  background: color-mix(in srgb, var(--group-base) 15%, #fff);
+}
+
+.card.tinted .card-preview {
+  background: color-mix(in srgb, var(--group-base) 28%, #fff);
+}
+
+.card.tinted.is-active {
+  outline-color: #fff;
+}
+
+/* ---------- Liste des groupes ---------- */
+
+.groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 92px 20px 120px;
+}
+
+.group-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 18px 14px 14px;
+  border: none;
+  border-radius: 24px;
+  background: #232325;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  animation: card-in 0.3s ease-out backwards;
+  transition: background 0.15s ease;
+}
+
+.group-row:hover {
+  background: #2f2f32;
+}
+
+.group-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 5px;
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  padding: 6px;
+  border-radius: 16px;
+  background: #151517;
+}
+
+.group-mini .slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: #303032;
+  overflow: hidden;
+}
+
+.group-mini .slot img {
+  width: 16px;
+  height: 16px;
+}
+
+.group-meta {
+  min-width: 0;
+}
+
+.group-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.group-dot {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.group-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.group-sub {
+  margin-top: 3px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ---------- États vides ---------- */
+
+.empty-state {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 24px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.empty-icon {
+  margin-bottom: 18px;
+}
+
+.empty-state h1 {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.empty-state p {
+  max-width: 480px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+/* ---------- Bouton nouvel onglet ---------- */
+
+.fab {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 62px;
+  height: 62px;
+  border: none;
+  border-radius: 50%;
+  background: var(--fab-bg);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  transition: transform 0.15s ease, filter 0.15s ease, border-radius 0.2s ease,
+    background 0.2s ease, color 0.2s ease;
+}
+
+.fab:hover {
+  transform: translateX(-50%) scale(1.06);
+  filter: brightness(1.08);
+}
+
+.fab:active {
+  transform: translateX(-50%) scale(0.96);
+}
+
+/* FAB blanc en navigation privée, squircle en mode groupes, pastel en détail. */
+body[data-view="incognito"] .fab {
+  background: #fff;
+  color: #111;
+}
+
+body[data-view="groups"] .fab {
+  border-radius: 20px;
+}
+
+body[data-view="group-detail"] .fab {
+  background: color-mix(in srgb, var(--group-base) 55%, #fff);
+}
+
+/* ---------- Divers ---------- */
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3c4043;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
