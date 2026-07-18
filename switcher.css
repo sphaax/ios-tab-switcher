@@ -366,6 +366,14 @@ body[data-view="group-detail"] .grid {
   box-shadow: 14px 0 0 -5px var(--accent);
 }
 
+/* Dépôt au centre de la carte : grouper avec elle plutôt que réordonner.
+   Outline en tirets pour se distinguer du contour plein de is-active. */
+.card.drop-group {
+  outline: 4px dashed var(--accent);
+  outline-offset: 3px;
+  transform: scale(1.02);
+}
+
 /* Pas d'effet de survol pendant un drag : la grille reste stable. */
 body.card-drag .card:hover {
   transform: none;

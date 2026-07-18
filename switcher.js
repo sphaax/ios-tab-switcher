@@ -134,8 +134,8 @@ let dragTab = null; // l'onglet en cours de glissement
 let isDraggingCard = false; // gèle les re-renders pendant le drag
 
 function clearDropMarkers() {
-  for (const el of grid.querySelectorAll('.drop-before, .drop-after')) {
-    el.classList.remove('drop-before', 'drop-after');
+  for (const el of grid.querySelectorAll('.drop-before, .drop-after, .drop-group')) {
+    el.classList.remove('drop-before', 'drop-after', 'drop-group');
   }
 }
 
@@ -171,6 +171,34 @@ async function performDrop(dragTabId, refTabId, placeAfter) {
     let index = ref.index + (placeAfter ? 1 : 0);
     if (drag.windowId === ref.windowId && drag.index < index) index -= 1;
     await chrome.tabs.move(dragTabId, { windowId: ref.windowId, index });
+  } catch {
+    // onglet fermé pendant le drag : le refresh remettra l'état réel
+  }
+}
+
+// Déposer au centre d'une carte (plutôt que sur un bord) groupe l'onglet
+// glissé avec l'onglet visé : les épinglés ne peuvent pas être groupés
+// (comme dans Chrome), et un onglet déjà dans le même groupe que la
+// cible n'a nulle part où aller.
+function isValidGroupTarget(refTab) {
+  if (!dragTab || refTab.id === dragTab.id) return false;
+  if (dragTab.pinned || refTab.pinned) return false;
+  if (refTab.incognito !== dragTab.incognito) return false;
+  if (dragTab.groupId !== -1 && dragTab.groupId === refTab.groupId) return false;
+  return true;
+}
+
+// Ajoute l'onglet glissé au groupe de la cible, ou crée un nouveau groupe
+// contenant les deux si la cible n'est pas encore groupée. Chrome retire
+// automatiquement l'onglet de son groupe précédent le cas échéant.
+async function performGroupDrop(dragTabId, refTabId) {
+  try {
+    const ref = await chrome.tabs.get(refTabId);
+    if (ref.groupId !== -1) {
+      await chrome.tabs.group({ tabIds: dragTabId, groupId: ref.groupId });
+    } else {
+      await chrome.tabs.group({ tabIds: [dragTabId, ref.id], createProperties: { windowId: ref.windowId } });
+    }
   } catch {
     // onglet fermé pendant le drag : le refresh remettra l'état réel
   }
@@ -285,12 +313,30 @@ function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant, groupF
     });
   }
 
-  const dropSide = (event) => {
+  // Bords de carte (25 % chacun) = réordonner ; centre (50 %) = grouper —
+  // même logique que la barre d'onglets native de Chrome.
+  const DROP_EDGE_RATIO = 0.25;
+  const dropZone = (event) => {
     const rect = card.getBoundingClientRect();
-    return event.clientX - rect.left > rect.width / 2;
+    const ratio = (event.clientX - rect.left) / rect.width;
+    if (ratio < DROP_EDGE_RATIO) return 'before';
+    if (ratio > 1 - DROP_EDGE_RATIO) return 'after';
+    return 'group';
   };
   card.addEventListener('dragover', (event) => {
-    const after = dropSide(event);
+    const zone = dropZone(event);
+    if (zone === 'group') {
+      if (!isValidGroupTarget(tab)) {
+        clearDropMarkers();
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      clearDropMarkers();
+      card.classList.add('drop-group');
+      return;
+    }
+    const after = zone === 'after';
     if (!isValidDropTarget(tab, groupFirst, groupLast, after)) {
       clearDropMarkers();
       return;
@@ -301,10 +347,17 @@ function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant, groupF
     card.classList.add(after ? 'drop-after' : 'drop-before');
   });
   card.addEventListener('dragleave', () => {
-    card.classList.remove('drop-before', 'drop-after');
+    card.classList.remove('drop-before', 'drop-after', 'drop-group');
   });
   card.addEventListener('drop', (event) => {
-    const after = dropSide(event);
+    const zone = dropZone(event);
+    if (zone === 'group') {
+      if (!isValidGroupTarget(tab)) return;
+      event.preventDefault();
+      performGroupDrop(dragTab.id, tab.id);
+      return;
+    }
+    const after = zone === 'after';
     if (!isValidDropTarget(tab, groupFirst, groupLast, after)) return;
     event.preventDefault();
     performDrop(dragTab.id, tab.id, after);
