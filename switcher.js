@@ -89,9 +89,14 @@ const sep1 = document.getElementById('sep-1');
 const sep2 = document.getElementById('sep-2');
 
 const searchInput = document.getElementById('search-input');
+const duplicatesPill = document.getElementById('duplicates-pill');
+const duplicatesCountEl = document.getElementById('duplicates-count');
+const duplicatesCloseBtn = document.getElementById('duplicates-close-btn');
 
 let mode = 'tabs'; // 'tabs' | 'incognito' | 'groups'
 let searchQuery = ''; // filtre live sur titre/URL
+let duplicatesOnly = false; // n'afficher que les onglets en double (URL exacte)
+let duplicateGroups = new Map(); // url -> tabs[] : dernier calcul, pour le filtre et "Fermer les doublons"
 let sourceTabId = null; // l'onglet depuis lequel le switcher a été ouvert
 let sourceWindowId = null; // sa fenêtre : affichée en premier dans la grille
 let openGroupId = null; // groupe affiché en vue détail
@@ -126,6 +131,73 @@ function matchesSearch(tab) {
     (tab.title || '').toLowerCase().includes(query) ||
     (tab.url || tab.pendingUrl || '').toLowerCase().includes(query)
   );
+}
+
+// ---------- Détection des onglets en double (URL exacte) ----------
+
+function computeDuplicateGroups(tabs) {
+  const groups = new Map();
+  for (const tab of tabs) {
+    const url = tab.url || tab.pendingUrl || '';
+    if (!url) continue;
+    if (!groups.has(url)) groups.set(url, []);
+    groups.get(url).push(tab);
+  }
+  for (const [url, list] of groups) {
+    if (list.length < 2) groups.delete(url);
+  }
+  return groups;
+}
+
+// Affichage court d'une URL pour l'en-tête de section ("exemple.com/page").
+function shortenUrl(url) {
+  let display = url;
+  try {
+    const u = new URL(url);
+    display = u.hostname + (u.pathname === '/' ? '' : u.pathname);
+  } catch {
+    // URL non standard (data:, chrome://…) : affichée telle quelle
+  }
+  return display.length > 46 ? `${display.slice(0, 45)}…` : display;
+}
+
+// Une section par URL en double, dans l'ordre de détection.
+function buildDuplicateSections() {
+  return [...duplicateGroups.entries()].map(([url, list]) => ({
+    label: `${shortenUrl(url)} · ${t('manyTabs', [String(list.length)])}`,
+    tabs: list,
+    contiguousGroups: false, // pas d'adjacence réelle : pas de bords de groupe à calculer
+  }));
+}
+
+// Recalcule les doublons à partir de la liste (non filtrée par la recherche)
+// et met à jour la pilule. Si le filtre était actif et qu'il ne reste plus
+// de doublon, on en sort pour ne pas rester bloqué sur une vue vide.
+function updateDuplicatesPill(tabs) {
+  duplicateGroups = computeDuplicateGroups(tabs);
+  const dupCount = [...duplicateGroups.values()].reduce((sum, list) => sum + list.length, 0);
+  if (dupCount === 0) {
+    duplicatesOnly = false;
+    duplicatesPill.hidden = true;
+    duplicatesCloseBtn.hidden = true;
+    return;
+  }
+  duplicatesPill.hidden = false;
+  duplicatesPill.classList.toggle('active', duplicatesOnly);
+  duplicatesPill.title = t(duplicatesOnly ? 'showAllTabs' : 'showDuplicates');
+  duplicatesCountEl.textContent = t('duplicatesCount', [String(dupCount)]);
+  duplicatesCloseBtn.hidden = !duplicatesOnly;
+}
+
+// Ferme tous les doublons sauf un par groupe : garde en priorité un onglet
+// épinglé, sinon l'onglet source du switcher, sinon le premier (ordre natif).
+async function closeDuplicates() {
+  const toClose = [];
+  for (const list of duplicateGroups.values()) {
+    const keep = list.find((tab) => tab.pinned) || list.find((tab) => tab.id === sourceTabId) || list[0];
+    toClose.push(...list.filter((tab) => tab.id !== keep.id).map((tab) => tab.id));
+  }
+  if (toClose.length) await chrome.tabs.remove(toClose);
 }
 
 // ---------- Drag & drop : réordonner les onglets ----------
@@ -403,48 +475,55 @@ function thumbSrcFromBlob(tabId, record) {
 
 // ---------- Rendu des vues ----------
 
-function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant }) {
-  // Sections par fenêtre Chrome : la fenêtre d'origine d'abord, puis les
-  // autres. Avec une seule fenêtre, pas d'en-têtes — grille plate.
-  const primaryWindowId = sourceWindowId ?? selfTab.windowId;
-  const windowIds = [...new Set(tabs.map((t) => t.windowId))].sort((a, b) => {
-    if (a === primaryWindowId) return -1;
-    if (b === primaryWindowId) return 1;
-    return a - b;
-  });
-  const multiWindow = windowIds.length > 1;
-  const ordered = windowIds.flatMap((id) => tabs.filter((t) => t.windowId === id));
+// `sections` (optionnel) : liste précalculée de { label, tabs, contiguousGroups }
+// — utilisée par la vue doublons (groupée par URL). Par défaut, sectionnement
+// par fenêtre Chrome (la fenêtre d'origine d'abord ; à fenêtre unique, pas
+// d'en-tête — grille plate).
+function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant, sections }) {
+  let sectionList = sections;
+  if (!sectionList) {
+    const primaryWindowId = sourceWindowId ?? selfTab.windowId;
+    const windowIds = [...new Set(tabs.map((t) => t.windowId))].sort((a, b) => {
+      if (a === primaryWindowId) return -1;
+      if (b === primaryWindowId) return 1;
+      return a - b;
+    });
+    const multiWindow = windowIds.length > 1;
+    sectionList = windowIds.map((windowId, windowIndex) => {
+      const windowTabs = tabs.filter((tab) => tab.windowId === windowId);
+      const name =
+        windowId === primaryWindowId ? t('thisWindow') : t('windowTitle', [String(windowIndex + 1)]);
+      const count = windowTabs.length > 1 ? t('manyTabs', [String(windowTabs.length)]) : t('oneTab');
+      return { label: multiWindow ? `${name} · ${count}` : null, tabs: windowTabs, contiguousGroups: true };
+    });
+  }
 
-  const entries = ordered.map((tab) => ({ tab, isActive: isTabActive(tab, lastActive) }));
+  const orderedTabs = sectionList.flatMap((s) => s.tabs);
+  const isActiveMap = new Map(orderedTabs.map((tab) => [tab.id, isTabActive(tab, lastActive)]));
   // La cascade d'apparition rayonne depuis la carte active (centrée à
   // l'écran après le scroll initial), pas depuis le coin haut-gauche.
-  const activeIndex = Math.max(0, entries.findIndex((e) => e.isActive));
+  const activeIndex = Math.max(0, orderedTabs.findIndex((tab) => isActiveMap.get(tab.id)));
 
   const fragment = document.createDocumentFragment();
   let index = 0;
-  for (const [windowIndex, windowId] of windowIds.entries()) {
-    const windowEntries = entries.filter((e) => e.tab.windowId === windowId);
-    if (multiWindow) {
+  for (const section of sectionList) {
+    if (section.label) {
       const label = document.createElement('h2');
       label.className = 'window-label';
-      const name =
-        windowId === primaryWindowId
-          ? t('thisWindow')
-          : t('windowTitle', [String(windowIndex + 1)]);
-      const count =
-        windowEntries.length > 1 ? t('manyTabs', [String(windowEntries.length)]) : t('oneTab');
-      label.textContent = `${name} · ${count}`;
+      label.textContent = section.label;
       fragment.appendChild(label);
     }
-    for (const [position, { tab, isActive }] of windowEntries.entries()) {
+    section.tabs.forEach((tab, position) => {
       // Bords de groupe : seuls points d'insertion valides pour un onglet
-      // extérieur au groupe (un groupe reste contigu).
-      const prevTab = windowEntries[position - 1]?.tab;
-      const nextTab = windowEntries[position + 1]?.tab;
+      // extérieur au groupe (un groupe reste contigu). N'a de sens que si
+      // l'ordre de la section reflète l'adjacence réelle des onglets (pas
+      // le cas de la vue doublons, groupée par URL).
+      const prevTab = section.contiguousGroups ? section.tabs[position - 1] : null;
+      const nextTab = section.contiguousGroups ? section.tabs[position + 1] : null;
       fragment.appendChild(
         buildCard(tab, {
           thumbSrc: thumbSrcFor(tab),
-          isActive,
+          isActive: isActiveMap.get(tab.id),
           groupColor:
             groupColorById && tab.groupId !== -1 ? groupColorById.get(tab.groupId) : null,
           index: Math.abs(index - activeIndex),
@@ -454,12 +533,12 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant })
         })
       );
       index++;
-    }
+    });
   }
   grid.replaceChildren(fragment);
 
   knownTabIds.clear();
-  for (const tab of tabs) knownTabIds.add(tab.id);
+  for (const tab of orderedTabs) knownTabIds.add(tab.id);
 
   if (firstRender) {
     firstRender = false;
@@ -475,10 +554,15 @@ async function renderTabs(normalTabs, stale) {
   ]);
   if (stale()) return;
   const groupColorById = new Map(groups.map((g) => [g.id, GROUP_COLORS[g.color] || '#5f6368']));
-  renderCards(normalTabs.filter(matchesSearch), {
+
+  updateDuplicatesPill(normalTabs);
+  const sections = duplicatesOnly ? buildDuplicateSections() : undefined;
+  const shown = duplicatesOnly ? sections.flatMap((s) => s.tabs) : normalTabs.filter(matchesSearch);
+  renderCards(shown, {
     thumbSrcFor: (tab) => thumbSrcFromBlob(tab.id, thumbs.get(tab.id)),
     lastActive: session.lastActive || {},
     groupColorById,
+    sections,
   });
 }
 
@@ -486,6 +570,8 @@ async function renderIncognito(incognitoTabs, stale) {
   if (!incognitoTabs.length) {
     const allowed = await chrome.extension.isAllowedIncognitoAccess();
     if (stale()) return;
+    duplicatesPill.hidden = true;
+    duplicatesCloseBtn.hidden = true;
     showEmpty(
       'incognito',
       t('emptyPrivateTitle'),
@@ -495,10 +581,15 @@ async function renderIncognito(incognitoTabs, stale) {
   }
   const store = await chrome.storage.session.get(null);
   if (stale()) return;
-  renderCards(incognitoTabs.filter(matchesSearch), {
+
+  updateDuplicatesPill(incognitoTabs);
+  const sections = duplicatesOnly ? buildDuplicateSections() : undefined;
+  const shown = duplicatesOnly ? sections.flatMap((s) => s.tabs) : incognitoTabs.filter(matchesSearch);
+  renderCards(shown, {
     thumbSrcFor: (tab) => store[`incog-${tab.id}`]?.dataUrl || null,
     lastActive: store.lastActive || {},
     variant: 'incog',
+    sections,
   });
 }
 
@@ -641,6 +732,8 @@ async function refresh() {
   emptyState.hidden = true;
   detailBar.hidden = true;
   colorPicker.hidden = true;
+  duplicatesPill.hidden = true;
+  duplicatesCloseBtn.hidden = true;
 
   if (mode === 'tabs') {
     await renderTabs(normalTabs, stale);
@@ -799,6 +892,9 @@ detailName.addEventListener('keydown', (event) => {
 
 searchInput.addEventListener('input', () => {
   searchQuery = searchInput.value.trim();
+  // Taper, c'est chercher : ça prend le pas sur le filtre doublons pour
+  // éviter un état ambigu (groupe partiellement affiché par la recherche).
+  if (searchQuery && duplicatesOnly) duplicatesOnly = false;
   scheduleRefresh();
 });
 
@@ -814,6 +910,18 @@ searchInput.addEventListener('keydown', (event) => {
     searchQuery = '';
     scheduleRefresh();
   }
+});
+
+// --- Onglets en double ---
+
+duplicatesPill.addEventListener('click', () => {
+  duplicatesOnly = !duplicatesOnly;
+  refresh();
+});
+
+duplicatesCloseBtn.addEventListener('click', async (event) => {
+  event.stopPropagation();
+  await closeDuplicates();
 });
 
 // Taper au clavier n'importe où remplit directement la recherche.
