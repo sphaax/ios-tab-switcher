@@ -139,12 +139,13 @@ function clearDropMarkers() {
   }
 }
 
-// Une cible est valide si elle respecte les invariants de Chrome :
-// les épinglés restent en tête, un groupe reste contigu (un onglet
-// extérieur ne peut viser que les bords d'un groupe).
+// Une cible est valide si elle respecte les invariants de Chrome : les
+// épinglés ne se réordonnent qu'entre eux (zone fixe en tête, comme la
+// vraie barre d'onglets), un groupe reste contigu (un onglet extérieur
+// ne peut viser que les bords d'un groupe).
 function isValidDropTarget(refTab, groupFirst, groupLast, after) {
   if (!dragTab || refTab.id === dragTab.id) return false;
-  if (refTab.pinned) return false;
+  if (refTab.pinned !== dragTab.pinned) return false;
   if (refTab.incognito !== dragTab.incognito) return false;
   if (refTab.groupId !== -1 && refTab.groupId !== dragTab.groupId) {
     if (!after && !groupFirst) return false;
@@ -260,9 +261,10 @@ function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant, groupF
   });
 
   // --- Réordonnancement par glisser-déposer ---
-  // Épinglés non déplaçables (zone fixe en tête) ; désactivé pendant une
-  // recherche (les index d'insertion seraient ambigus sur une liste filtrée).
-  const canDrag = !tab.pinned && !searchQuery;
+  // Les épinglés se réordonnent entre eux (voir isValidDropTarget) ;
+  // désactivé pendant une recherche (les index d'insertion seraient
+  // ambigus sur une liste filtrée).
+  const canDrag = !searchQuery;
   card.draggable = canDrag;
   if (canDrag) {
     card.addEventListener('dragstart', (event) => {
