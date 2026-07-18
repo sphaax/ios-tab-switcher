@@ -426,6 +426,20 @@ body[data-view="group-detail"] .grid {
   box-shadow: 0 0 0 3px var(--group-color);
 }
 
+/* Navigation clavier (flèches) : un halo blanc via `filter`, propriété
+   indépendante de l'outline (is-active) et du box-shadow (in-group), pour
+   que les trois indicateurs puissent s'afficher ensemble sans s'écraser.
+   `:focus` plutôt que `:focus-visible` : l'heuristique "clavier vs souris"
+   de ce dernier peut ne pas se déclencher de façon fiable sur un élément
+   non natif (article role="button"). Un clic souris déclenchera aussi
+   brièvement le halo, mais le switcher se ferme aussitôt après un clic sur
+   une carte — le risque visuel est nul en pratique. */
+.card:focus {
+  /* drop-shadow() n'a pas de rayon d'étalement (contrairement à box-shadow) :
+     on empile plusieurs flous serrés pour simuler un anneau net. */
+  filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
+}
+
 /* --- Glisser-déposer : réordonner les onglets --- */
 
 .card.dragging {

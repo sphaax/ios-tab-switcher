@@ -18,6 +18,7 @@ Visual references: [docs/reference.jpg](docs/reference.jpg) (phone), [docs/refer
 - **Click the ✕**: closes the tab.
 - **+ button**: opens a new tab (in the current mode: normal, private, or inside the open group).
 - **Escape**: leaves the group detail view, otherwise closes the switcher and returns to the previously active tab.
+- **Arrow keys**: move keyboard focus between cards (spatial navigation — works with the responsive grid's variable column count, and jumps cleanly across section headers). **Enter** or **Space** activates the focused card. Focus survives live re-renders and is ignored while typing in search or a group name.
 - **Search** (pill on the top-left): live-filters cards by title/URL in every view (and group rows by name). Enter opens the first match; Escape clears the query.
 - **Duplicate tabs**: a pill next to search appears only when two or more open tabs share the exact same URL ("Tabs" and "Private" modes). Click it to filter the grid to just those tabs, grouped by URL with a section label — then click the trash button to close all duplicates but one per group (prefers keeping a pinned tab, then the tab you opened the switcher from, then the first). Typing in search exits the filter.
 - With several Chrome windows open, the grid splits into one section per window, your current window first.

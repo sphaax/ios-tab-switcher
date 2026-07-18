@@ -535,10 +535,30 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant, s
       index++;
     });
   }
+
+  // Les cartes sont entièrement recréées à chaque rendu (replaceChildren) :
+  // sans ça, le focus clavier serait perdu à chaque rafraîchissement en
+  // temps réel. On capture l'état AVANT le remplacement.
+  const hadGridFocus = document.activeElement?.closest('.card') != null;
+  const focusedTabId = hadGridFocus ? document.activeElement.dataset.tabId : null;
+
   grid.replaceChildren(fragment);
 
   knownTabIds.clear();
   for (const tab of orderedTabs) knownTabIds.add(tab.id);
+
+  // Roving tabindex (une seule carte dans l'ordre de tabulation) : on
+  // restaure le focus sur la même carte si la grille l'avait déjà, sinon on
+  // désigne simplement la carte active comme point d'entrée pour la
+  // prochaine navigation aux flèches (sans lui donner le focus DOM).
+  const focusTarget =
+    (focusedTabId != null && grid.querySelector(`[data-tab-id="${focusedTabId}"]`)) ||
+    grid.querySelector('.card.is-active') ||
+    grid.querySelector('.card');
+  if (focusTarget) {
+    focusTarget.tabIndex = 0;
+    if (hadGridFocus) focusTarget.focus({ preventScroll: true });
+  }
 
   if (firstRender) {
     firstRender = false;
@@ -930,7 +950,93 @@ document.addEventListener('keydown', (event) => {
   if (event.key.length !== 1) return; // ignore les touches non imprimables
   const active = document.activeElement;
   if (active === searchInput || active === detailName) return;
+  // Espace sur une carte survolée au clavier = l'activer (rôle "button"),
+  // pas démarrer une recherche par un espace.
+  if (event.key === ' ' && active?.closest('.card')) return;
   searchInput.focus(); // le caractère de cet appui ira dans le champ
+});
+
+// --- Navigation clavier dans la grille ---
+
+// Repère la carte la plus proche dans la direction demandée, par géométrie
+// réelle du DOM : fonctionne quel que soit le nombre de colonnes de la
+// grille responsive, et saute naturellement les en-têtes de section (ce ne
+// sont pas des .card).
+function findCardInDirection(fromCard, direction) {
+  const from = fromCard.getBoundingClientRect();
+  const fromCenter = { x: from.left + from.width / 2, y: from.top + from.height / 2 };
+
+  let best = null;
+  let bestScore = Infinity;
+  for (const card of grid.querySelectorAll('.card')) {
+    if (card === fromCard) continue;
+    const r = card.getBoundingClientRect();
+    const center = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    const dx = center.x - fromCenter.x;
+    const dy = center.y - fromCenter.y;
+    let primary;
+    let perpendicular;
+    if (direction === 'right') {
+      if (dx <= 4) continue;
+      primary = dx;
+      perpendicular = dy;
+    } else if (direction === 'left') {
+      if (dx >= -4) continue;
+      primary = -dx;
+      perpendicular = dy;
+    } else if (direction === 'down') {
+      if (dy <= 4) continue;
+      primary = dy;
+      perpendicular = dx;
+    } else {
+      if (dy >= -4) continue;
+      primary = -dy;
+      perpendicular = dx;
+    }
+    // Favorise l'alignement sur l'axe perpendiculaire, puis la proximité.
+    const score = primary + Math.abs(perpendicular) * 2;
+    if (score < bestScore) {
+      bestScore = score;
+      best = card;
+    }
+  }
+  return best;
+}
+
+function focusCard(card) {
+  for (const el of grid.querySelectorAll('.card[tabindex="0"]')) el.tabIndex = -1;
+  card.tabIndex = 0;
+  card.focus();
+}
+
+const ARROW_DIRECTIONS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+
+document.addEventListener('keydown', (event) => {
+  const direction = ARROW_DIRECTIONS[event.key];
+  if (!direction) return;
+  if (document.activeElement === searchInput || document.activeElement === detailName) return;
+  const current =
+    document.activeElement?.closest('.card') ||
+    grid.querySelector('.card[tabindex="0"]') ||
+    grid.querySelector('.card');
+  if (!current) return;
+  const next = findCardInDirection(current, direction);
+  if (!next) return;
+  event.preventDefault(); // empêche le défilement natif de la page via les flèches
+  focusCard(next);
+});
+
+// Entrée/Espace active la carte qui a le focus clavier. Géré explicitement
+// (plutôt que de compter sur le comportement implicite de role="button")
+// pour rester certain du résultat et réutiliser le listener 'click' déjà
+// posé sur la carte dans buildCard.
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  if (document.activeElement === searchInput || document.activeElement === detailName) return;
+  const card = document.activeElement?.closest('.card');
+  if (!card) return;
+  event.preventDefault(); // la barre d'espace ne doit pas faire défiler la page
+  card.click();
 });
 
 // Échap : sort de la vue détail, sinon ferme le switcher.
