@@ -61,6 +61,23 @@
   "searchPlaceholder": {
     "message": "Search tabs"
   },
+  "duplicatesCount": {
+    "message": "$count$ duplicate tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "showDuplicates": {
+    "message": "Show duplicate tabs"
+  },
+  "showAllTabs": {
+    "message": "Show all tabs"
+  },
+  "closeDuplicates": {
+    "message": "Close duplicates"
+  },
   "supportBy": {
     "message": "made by sphaax"
   },

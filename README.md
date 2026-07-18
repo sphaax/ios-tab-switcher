@@ -19,6 +19,7 @@ Visual references: [docs/reference.jpg](docs/reference.jpg) (phone), [docs/refer
 - **+ button**: opens a new tab (in the current mode: normal, private, or inside the open group).
 - **Escape**: leaves the group detail view, otherwise closes the switcher and returns to the previously active tab.
 - **Search** (pill on the top-left): live-filters cards by title/URL in every view (and group rows by name). Enter opens the first match; Escape clears the query.
+- **Duplicate tabs**: a pill next to search appears only when two or more open tabs share the exact same URL ("Tabs" and "Private" modes). Click it to filter the grid to just those tabs, grouped by URL with a section label — then click the trash button to close all duplicates but one per group (prefers keeping a pinned tab, then the tab you opened the switcher from, then the first). Typing in search exits the filter.
 - With several Chrome windows open, the grid splits into one section per window, your current window first.
 - Tabs belonging to a Chrome tab group show a ring in the group's color. The active tab is outlined in blue.
 - **Pinned tabs** remain regular cards, identified by a pin badge on the top-left of their preview. Clicking the badge unpins the tab.

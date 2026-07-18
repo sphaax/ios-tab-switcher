@@ -61,6 +61,23 @@
   "searchPlaceholder": {
     "message": "Rechercher un onglet"
   },
+  "duplicatesCount": {
+    "message": "$count$ onglets en double",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "showDuplicates": {
+    "message": "Afficher les onglets en double"
+  },
+  "showAllTabs": {
+    "message": "Afficher tous les onglets"
+  },
+  "closeDuplicates": {
+    "message": "Fermer les doublons"
+  },
   "supportBy": {
     "message": "par sphaax"
   },

@@ -55,10 +55,16 @@ body[data-view="group-detail"] {
   pointer-events: none;
 }
 
-.search-pill {
+.topbar-left {
   position: absolute;
   left: 16px;
   top: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-pill {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -70,6 +76,7 @@ body[data-view="group-detail"] {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
   color: var(--pill-icon);
   pointer-events: auto;
+  flex-shrink: 0;
 }
 
 .search-pill svg {
@@ -101,6 +108,74 @@ body[data-view="group-detail"] {
 
 .search-pill input::placeholder {
   color: rgba(255, 255, 255, 0.5);
+}
+
+/* Pilule "doublons" : masquée par défaut, visible seulement si des onglets
+   en double sont détectés. Devient blanche (comme un mode actif) une fois
+   le filtre engagé. */
+.duplicates-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--pill-bg);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  color: var(--pill-icon);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.duplicates-pill svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.duplicates-pill:hover {
+  background: rgba(60, 60, 64, 0.92);
+}
+
+.duplicates-pill.active {
+  background: #fff;
+  color: #000;
+}
+
+.duplicates-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--pill-bg);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  color: var(--pill-icon);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.duplicates-close-btn svg {
+  width: 19px;
+  height: 19px;
+}
+
+.duplicates-close-btn:hover {
+  background: rgba(60, 60, 64, 0.92);
+  transform: scale(1.06);
 }
 
 .topbar-pill {
