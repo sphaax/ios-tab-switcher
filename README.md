@@ -22,6 +22,7 @@ Visual references: [docs/reference.jpg](docs/reference.jpg) (phone), [docs/refer
 - With several Chrome windows open, the grid splits into one section per window, your current window first.
 - Tabs belonging to a Chrome tab group show a ring in the group's color. The active tab is outlined in blue.
 - **Pinned tabs** remain regular cards, identified by a pin badge on the top-left of their preview. Clicking the badge unpins the tab.
+- **Drag & drop**: drag a card onto another to reorder the real tabs (drop on the left half to insert before, right half to insert after — a blue bar shows the insertion side). Works across window sections and inside a group's detail view. Chrome's invariants are enforced: pinned tabs only reorder among other pinned tabs (matching the native tab strip), groups stay contiguous (an outside tab can only be dropped at a group's edges; dragging a grouped tab out ungroups it). Disabled while a search filter is active.
 
 ### The three modes (top pill)
 
@@ -66,7 +67,6 @@ It bundles only the runtime files (`manifest.json`, `background.js`, `switcher.*
 
 The extension collects and transmits nothing — all tab data and screenshot thumbnails stay on your device. See [PRIVACY.md](PRIVACY.md) for the full policy (usable as the Web Store privacy-policy URL).
 
-## Out of scope (v1)
+## Out of scope
 
-- Drag & drop reordering.
 - Pinning tabs from the switcher (unpinning works; pinning is done via Chrome's native tab context menu).
