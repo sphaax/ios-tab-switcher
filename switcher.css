@@ -444,7 +444,9 @@ body[data-view="group-detail"] .grid {
    souris déclenchera aussi brièvement l'anneau, mais le switcher se ferme
    aussitôt après un clic sur une carte — le risque visuel est nul en pratique. */
 .card:focus {
-  --shadow-focus: 0 0 0 3px rgba(255, 255, 255, 0.85);
+  /* Deux ombres dans une seule variable (box-shadow accepte une liste) :
+     un anneau net + un halo doux pour plus de présence. */
+  --shadow-focus: 0 0 0 4px rgba(255, 255, 255, 0.95), 0 0 16px 2px rgba(255, 255, 255, 0.5);
 }
 
 /* --- Glisser-déposer : réordonner les onglets --- */
