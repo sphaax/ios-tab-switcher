@@ -204,6 +204,11 @@ async function closeDuplicates() {
 
 let dragTab = null; // l'onglet en cours de glissement
 let isDraggingCard = false; // gèle les re-renders pendant le drag
+// Après fermeture d'une carte au clavier (Suppr), l'onglet fermé n'existe
+// plus au rendu suivant : ceci indique la carte voisine à focaliser à la
+// place, pour que la navigation reste sur place plutôt que de sauter à
+// l'onglet actif ou en tête de grille.
+let pendingFocusTabId = null;
 
 function clearDropMarkers() {
   for (const el of grid.querySelectorAll('.drop-before, .drop-after, .drop-group')) {
@@ -538,26 +543,35 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant, s
 
   // Les cartes sont entièrement recréées à chaque rendu (replaceChildren) :
   // sans ça, le focus clavier serait perdu à chaque rafraîchissement en
-  // temps réel. On capture l'état AVANT le remplacement.
+  // temps réel. On capture l'état AVANT le remplacement. Si la carte
+  // focalisée vient d'être fermée (Suppr), elle a déjà été retirée du DOM à
+  // ce stade (removeCardWithAnimation) : le navigateur a alors déjà rendu le
+  // focus à <body> tout seul, donc `hadGridFocus` lira faux — c'est pour ça
+  // que pendingFocusTabId (posé AVANT la fermeture) est un signal séparé,
+  // qui doit lui aussi déclencher la restauration.
   const hadGridFocus = document.activeElement?.closest('.card') != null;
   const focusedTabId = hadGridFocus ? document.activeElement.dataset.tabId : null;
+  const shouldRestoreFocus = hadGridFocus || pendingFocusTabId != null;
 
   grid.replaceChildren(fragment);
 
   knownTabIds.clear();
   for (const tab of orderedTabs) knownTabIds.add(tab.id);
 
-  // Roving tabindex (une seule carte dans l'ordre de tabulation) : on
+  // Roving tabindex (une seule carte dans l'ordre de tabulation) : priorité
+  // à la carte voisine désignée après une fermeture au clavier, sinon on
   // restaure le focus sur la même carte si la grille l'avait déjà, sinon on
   // désigne simplement la carte active comme point d'entrée pour la
   // prochaine navigation aux flèches (sans lui donner le focus DOM).
   const focusTarget =
+    (pendingFocusTabId != null && grid.querySelector(`[data-tab-id="${pendingFocusTabId}"]`)) ||
     (focusedTabId != null && grid.querySelector(`[data-tab-id="${focusedTabId}"]`)) ||
     grid.querySelector('.card.is-active') ||
     grid.querySelector('.card');
+  pendingFocusTabId = null; // consommé, ne doit pas persister au-delà de ce rendu
   if (focusTarget) {
     focusTarget.tabIndex = 0;
-    if (hadGridFocus) focusTarget.focus({ preventScroll: true });
+    if (shouldRestoreFocus) focusTarget.focus({ preventScroll: true });
   }
 
   if (firstRender) {
@@ -1047,6 +1061,13 @@ document.addEventListener('keydown', (event) => {
   const card = document.activeElement?.closest('.card');
   if (!card) return;
   event.preventDefault();
+  // La carte fermée n'existera plus au prochain rendu : on désigne sa
+  // voisine (suivante, sinon précédente) pour que le focus reste sur place
+  // au lieu de sauter loin dans la grille.
+  const neighbor =
+    (card.nextElementSibling?.classList.contains('card') && card.nextElementSibling) ||
+    (card.previousElementSibling?.classList.contains('card') && card.previousElementSibling);
+  pendingFocusTabId = neighbor ? neighbor.dataset.tabId : null;
   card.querySelector('.card-close').click();
 });
 

@@ -401,6 +401,14 @@ body[data-view="group-detail"] .grid {
   margin-top: 0;
 }
 
+/* box-shadow à 3 couches composées via des variables : chaque état (survol,
+   groupe, focus clavier) écrase juste SA couche, sans jamais avoir besoin de
+   règles combinées pour chaque combinaison possible. On évite `filter`
+   (empilage de drop-shadow) pour l'anneau de focus : combiné au `transform`
+   du survol sur un élément à `overflow:hidden`/coins arrondis, il crée son
+   propre contexte d'empilement et provoquait un artefact visuel au survol
+   d'une carte focalisée. box-shadow n'a pas ce défaut et dispose nativement
+   d'un rayon d'étalement (plus besoin d'empiler des couches pour un anneau net). */
 .card {
   display: flex;
   flex-direction: column;
@@ -410,11 +418,15 @@ body[data-view="group-detail"] .grid {
   cursor: pointer;
   animation: card-in 0.35s ease-out backwards;
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+  --shadow-group: 0 0 transparent;
+  --shadow-focus: 0 0 transparent;
+  --shadow-hover: 0 0 transparent;
+  box-shadow: var(--shadow-group), var(--shadow-focus), var(--shadow-hover);
 }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 .card.is-active {
@@ -423,23 +435,16 @@ body[data-view="group-detail"] .grid {
 }
 
 .card.in-group {
-  box-shadow: 0 0 0 3px var(--group-color);
+  --shadow-group: 0 0 0 3px var(--group-color);
 }
 
-/* Navigation clavier (flèches) : un halo blanc via `filter`, propriété
-   indépendante de l'outline (is-active) et du box-shadow (in-group), pour
-   que les trois indicateurs puissent s'afficher ensemble sans s'écraser.
-   `:focus` plutôt que `:focus-visible` : l'heuristique "clavier vs souris"
-   de ce dernier peut ne pas se déclencher de façon fiable sur un élément
-   non natif (article role="button"). Un clic souris déclenchera aussi
-   brièvement le halo, mais le switcher se ferme aussitôt après un clic sur
-   une carte — le risque visuel est nul en pratique. */
+/* Navigation clavier (flèches). `:focus` plutôt que `:focus-visible` :
+   l'heuristique "clavier vs souris" de ce dernier peut ne pas se déclencher
+   de façon fiable sur un élément non natif (article role="button"). Un clic
+   souris déclenchera aussi brièvement l'anneau, mais le switcher se ferme
+   aussitôt après un clic sur une carte — le risque visuel est nul en pratique. */
 .card:focus {
-  /* drop-shadow() n'a pas de rayon d'étalement (contrairement à box-shadow) :
-     on empile plusieurs flous serrés pour simuler un anneau net et épais,
-     plus un halo large pour la présence visuelle. */
-  filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 3px #fff) drop-shadow(0 0 3px #fff)
-    drop-shadow(0 0 10px rgba(255, 255, 255, 0.85)) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
+  --shadow-focus: 0 0 0 3px rgba(255, 255, 255, 0.85);
 }
 
 /* --- Glisser-déposer : réordonner les onglets --- */
