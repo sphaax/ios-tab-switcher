@@ -128,6 +128,53 @@ function matchesSearch(tab) {
   );
 }
 
+// ---------- Drag & drop : réordonner les onglets ----------
+
+let dragTab = null; // l'onglet en cours de glissement
+let isDraggingCard = false; // gèle les re-renders pendant le drag
+
+function clearDropMarkers() {
+  for (const el of grid.querySelectorAll('.drop-before, .drop-after')) {
+    el.classList.remove('drop-before', 'drop-after');
+  }
+}
+
+// Une cible est valide si elle respecte les invariants de Chrome :
+// les épinglés restent en tête, un groupe reste contigu (un onglet
+// extérieur ne peut viser que les bords d'un groupe).
+function isValidDropTarget(refTab, groupFirst, groupLast, after) {
+  if (!dragTab || refTab.id === dragTab.id) return false;
+  if (refTab.pinned) return false;
+  if (refTab.incognito !== dragTab.incognito) return false;
+  if (refTab.groupId !== -1 && refTab.groupId !== dragTab.groupId) {
+    if (!after && !groupFirst) return false;
+    if (after && !groupLast) return false;
+  }
+  return true;
+}
+
+// Déplace l'onglet glissé avant/après l'onglet de référence. Les index
+// sont résolus au moment du drop (ils ont pu bouger pendant le drag).
+async function performDrop(dragTabId, refTabId, placeAfter) {
+  try {
+    let drag = await chrome.tabs.get(dragTabId);
+    let ref = await chrome.tabs.get(refTabId);
+    // Lâché hors de son groupe : on en sort d'abord (l'ungroup peut
+    // décaler les index, donc on relit les deux onglets).
+    if (drag.groupId !== -1 && drag.groupId !== ref.groupId) {
+      await chrome.tabs.ungroup(dragTabId);
+      [drag, ref] = await Promise.all([chrome.tabs.get(dragTabId), chrome.tabs.get(refTabId)]);
+    }
+    // chrome.tabs.move attend la position FINALE : en avançant dans la
+    // même fenêtre, le retrait de l'onglet décale la cible de 1.
+    let index = ref.index + (placeAfter ? 1 : 0);
+    if (drag.windowId === ref.windowId && drag.index < index) index -= 1;
+    await chrome.tabs.move(dragTabId, { windowId: ref.windowId, index });
+  } catch {
+    // onglet fermé pendant le drag : le refresh remettra l'état réel
+  }
+}
+
 // Une seule carte est marquée active : l'onglet depuis lequel le switcher
 // a été appelé (mémorisé par le service worker à l'ouverture). En repli,
 // le dernier onglet actif de la fenêtre du switcher.
@@ -136,7 +183,7 @@ function isTabActive(tab, lastActive) {
   return tab.windowId === selfTab.windowId && tab.id === lastActive[selfTab.windowId];
 }
 
-function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant }) {
+function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant, groupFirst, groupLast }) {
   const card = cardTemplate.content.firstElementChild.cloneNode(true);
   card.dataset.tabId = String(tab.id);
   if (variant) card.classList.add(variant);
@@ -212,6 +259,55 @@ function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant }) {
     chrome.tabs.remove(tab.id);
   });
 
+  // --- Réordonnancement par glisser-déposer ---
+  // Épinglés non déplaçables (zone fixe en tête) ; désactivé pendant une
+  // recherche (les index d'insertion seraient ambigus sur une liste filtrée).
+  const canDrag = !tab.pinned && !searchQuery;
+  card.draggable = canDrag;
+  if (canDrag) {
+    card.addEventListener('dragstart', (event) => {
+      dragTab = tab;
+      isDraggingCard = true;
+      document.body.classList.add('card-drag');
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', String(tab.id));
+      requestAnimationFrame(() => card.classList.add('dragging'));
+    });
+    card.addEventListener('dragend', () => {
+      dragTab = null;
+      isDraggingCard = false;
+      document.body.classList.remove('card-drag');
+      card.classList.remove('dragging');
+      clearDropMarkers();
+      refresh();
+    });
+  }
+
+  const dropSide = (event) => {
+    const rect = card.getBoundingClientRect();
+    return event.clientX - rect.left > rect.width / 2;
+  };
+  card.addEventListener('dragover', (event) => {
+    const after = dropSide(event);
+    if (!isValidDropTarget(tab, groupFirst, groupLast, after)) {
+      clearDropMarkers();
+      return;
+    }
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    clearDropMarkers();
+    card.classList.add(after ? 'drop-after' : 'drop-before');
+  });
+  card.addEventListener('dragleave', () => {
+    card.classList.remove('drop-before', 'drop-after');
+  });
+  card.addEventListener('drop', (event) => {
+    const after = dropSide(event);
+    if (!isValidDropTarget(tab, groupFirst, groupLast, after)) return;
+    event.preventDefault();
+    performDrop(dragTab.id, tab.id, after);
+  });
+
   return card;
 }
 
@@ -268,7 +364,11 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant })
       label.textContent = `${name} · ${count}`;
       fragment.appendChild(label);
     }
-    for (const { tab, isActive } of windowEntries) {
+    for (const [position, { tab, isActive }] of windowEntries.entries()) {
+      // Bords de groupe : seuls points d'insertion valides pour un onglet
+      // extérieur au groupe (un groupe reste contigu).
+      const prevTab = windowEntries[position - 1]?.tab;
+      const nextTab = windowEntries[position + 1]?.tab;
       fragment.appendChild(
         buildCard(tab, {
           thumbSrc: thumbSrcFor(tab),
@@ -277,6 +377,8 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant })
             groupColorById && tab.groupId !== -1 ? groupColorById.get(tab.groupId) : null,
           index: Math.abs(index - activeIndex),
           variant,
+          groupFirst: tab.groupId !== -1 && prevTab?.groupId !== tab.groupId,
+          groupLast: tab.groupId !== -1 && nextTab?.groupId !== tab.groupId,
         })
       );
       index++;
@@ -447,6 +549,7 @@ let renderSeq = 0;
 
 async function refresh() {
   if (editingName) return; // ne pas écraser le champ pendant la saisie
+  if (isDraggingCard) return; // ne pas reconstruire la grille pendant un drag
   const seq = ++renderSeq;
   const stale = () => seq !== renderSeq;
 

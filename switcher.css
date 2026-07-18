@@ -351,6 +351,26 @@ body[data-view="group-detail"] .grid {
   box-shadow: 0 0 0 3px var(--group-color);
 }
 
+/* --- Glisser-déposer : réordonner les onglets --- */
+
+.card.dragging {
+  opacity: 0.35;
+}
+
+/* Barrette d'insertion dans l'inter-colonne, côté visé. */
+.card.drop-before {
+  box-shadow: -14px 0 0 -5px var(--accent);
+}
+
+.card.drop-after {
+  box-shadow: 14px 0 0 -5px var(--accent);
+}
+
+/* Pas d'effet de survol pendant un drag : la grille reste stable. */
+body.card-drag .card:hover {
+  transform: none;
+}
+
 .card.closing {
   transform: scale(0.85);
   opacity: 0;
