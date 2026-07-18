@@ -1039,6 +1039,17 @@ document.addEventListener('keydown', (event) => {
   card.click();
 });
 
+// Suppr ferme la carte qui a le focus clavier — même action que son bouton
+// X (réutilisé pour rester sur un seul chemin de fermeture).
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Delete') return;
+  if (document.activeElement === searchInput || document.activeElement === detailName) return;
+  const card = document.activeElement?.closest('.card');
+  if (!card) return;
+  event.preventDefault();
+  card.querySelector('.card-close').click();
+});
+
 // Échap : sort de la vue détail, sinon ferme le switcher.
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;
