@@ -147,3 +147,7 @@ dist/
 
 # Store screenshots (contain personal tab content)
 store-screenshots/
+
+# Python bytecode cache
+__pycache__/
+*.pyc
