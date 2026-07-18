@@ -41,6 +41,9 @@
   "unpinTab": {
     "message": "Désépingler l’onglet"
   },
+  "ungroupTab": {
+    "message": "Retirer du groupe"
+  },
   "unnamedGroup": {
     "message": "Groupe sans nom"
   },
