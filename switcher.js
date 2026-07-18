@@ -252,6 +252,23 @@ function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant, groupF
       chrome.tabs.update(tab.id, { pinned: false });
     });
     preview.appendChild(badge);
+  } else if (tab.groupId !== -1) {
+    // Chrome interdit qu'un onglet soit à la fois épinglé et groupé : cet
+    // emplacement (haut-gauche) est donc sans conflit avec le badge épingle.
+    // Utile surtout dans la vue détail d'un groupe, où toutes les cartes
+    // partagent le même groupe : le drag n'y a aucune cible pour dégrouper.
+    const badge = document.createElement('button');
+    badge.className = 'ungroup-badge';
+    badge.title = t('ungroupTab');
+    badge.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+      '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/>' +
+      '</svg>';
+    badge.addEventListener('click', (event) => {
+      event.stopPropagation();
+      chrome.tabs.ungroup(tab.id);
+    });
+    preview.appendChild(badge);
   }
   // Onglet qui émet du son (ou coupé) : badge haut-parleur, clic = muet/actif.
   const muted = !!tab.mutedInfo?.muted;

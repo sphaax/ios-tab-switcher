@@ -41,6 +41,9 @@
   "unpinTab": {
     "message": "Unpin tab"
   },
+  "ungroupTab": {
+    "message": "Remove from group"
+  },
   "unnamedGroup": {
     "message": "Unnamed group"
   },

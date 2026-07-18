@@ -450,9 +450,11 @@ body.card-drag .card:hover {
   background: var(--card-fallback-bg);
 }
 
-/* Badges ronds sur l'aperçu : épingle (haut-gauche, clic = désépingler)
-   et son (haut-droite, clic = muet/actif). */
+/* Badges ronds sur l'aperçu : épingle OU dégrouper (haut-gauche — un onglet
+   ne peut jamais être les deux à la fois dans Chrome, donc pas de conflit
+   de place) et son (haut-droite, clic = muet/actif). */
 .pin-badge,
+.ungroup-badge,
 .audio-badge {
   position: absolute;
   top: 8px;
@@ -471,7 +473,8 @@ body.card-drag .card:hover {
   transition: background 0.15s ease, transform 0.12s ease;
 }
 
-.pin-badge {
+.pin-badge,
+.ungroup-badge {
   left: 8px;
 }
 
@@ -480,12 +483,14 @@ body.card-drag .card:hover {
 }
 
 .pin-badge:hover,
+.ungroup-badge:hover,
 .audio-badge:hover {
   background: rgba(32, 33, 36, 0.92);
   transform: scale(1.12);
 }
 
 .pin-badge svg,
+.ungroup-badge svg,
 .audio-badge svg {
   width: 15px;
   height: 15px;

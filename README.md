@@ -22,6 +22,7 @@ Visual references: [docs/reference.jpg](docs/reference.jpg) (phone), [docs/refer
 - With several Chrome windows open, the grid splits into one section per window, your current window first.
 - Tabs belonging to a Chrome tab group show a ring in the group's color. The active tab is outlined in blue.
 - **Pinned tabs** remain regular cards, identified by a pin badge on the top-left of their preview. Clicking the badge unpins the tab.
+- **Grouped tabs** show an ungroup badge on the top-left of their preview (same slot as the pin badge — a tab can never be both pinned and grouped in Chrome). Clicking it removes the tab from its group; this is the only way to ungroup from inside a group's detail view, where every card shares the same group and drag-and-drop has no valid target to drop out onto.
 - **Drag & drop**: drag a card onto another — drop near an edge (25% of the card's width) to reorder, drop in the center (50%) to group, matching Chrome's native tab strip. Reordering inserts before/after (blue bar shows the side); grouping adds the dragged tab to the target's group, or creates a new group if the target has none (dashed outline shows the target). Works across window sections and inside a group's detail view. Chrome's invariants are enforced: pinned tabs only reorder among other pinned tabs and can't be grouped, groups stay contiguous (an outside tab can only be dropped at a group's edges to reorder; dragging a grouped tab out ungroups it). Disabled while a search filter is active.
 
 ### The three modes (top pill)
