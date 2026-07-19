@@ -673,24 +673,62 @@ body.card-drag .card:hover {
   padding: 92px 20px 120px;
 }
 
+/* Une ligne = un conteneur qui porte le fond/arrondi, avec deux boutons
+   frères à l'intérieur (ouvrir le groupe / le dissoudre) : imbriquer un
+   <button> dans un <button> serait du HTML invalide. */
+.group-row-wrap {
+  display: flex;
+  align-items: center;
+  padding-right: 14px;
+  border-radius: 24px;
+  background: #232325;
+  animation: card-in 0.3s ease-out backwards;
+  transition: background 0.15s ease;
+}
+
+.group-row-wrap:hover {
+  background: #2f2f32;
+}
+
 .group-row {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 18px;
   padding: 14px 18px 14px 14px;
   border: none;
   border-radius: 24px;
-  background: #232325;
+  background: transparent;
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
-  animation: card-in 0.3s ease-out backwards;
-  transition: background 0.15s ease;
 }
 
-.group-row:hover {
-  background: #2f2f32;
+.group-dissolve {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.group-dissolve svg {
+  width: 20px;
+  height: 20px;
+}
+
+.group-dissolve:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: scale(1.08);
 }
 
 .group-mini {

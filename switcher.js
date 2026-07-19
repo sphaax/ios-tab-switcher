@@ -637,6 +637,18 @@ async function renderIncognito(incognitoTabs, stale) {
   });
 }
 
+// Dissout un groupe : dégroupe tous ses onglets d'un coup (ils restent
+// ouverts). Le groupe cesse d'exister une fois vide. Non destructif, donc
+// pas de confirmation — comme le « Dissoudre le groupe » natif de Chrome.
+async function dissolveGroup(groupId) {
+  try {
+    const tabs = await chrome.tabs.query({ groupId });
+    if (tabs.length) await chrome.tabs.ungroup(tabs.map((tab) => tab.id));
+  } catch {
+    // groupe déjà disparu entre-temps : le refresh remettra l'état réel
+  }
+}
+
 async function renderGroupsList(stale) {
   const groups = await chrome.tabGroups.query({});
   if (stale()) return;
@@ -695,7 +707,25 @@ async function renderGroupsList(stale) {
         openGroupId = group.id;
         refresh();
       });
-      return row;
+
+      const dissolve = document.createElement('button');
+      dissolve.className = 'group-dissolve';
+      dissolve.title = t('dissolveGroup');
+      dissolve.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+        '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/>' +
+        '</svg>';
+      dissolve.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        await dissolveGroup(group.id);
+        refresh();
+      });
+
+      // Conteneur : les deux boutons sont frères (pas de <button> imbriqué).
+      const wrap = document.createElement('div');
+      wrap.className = 'group-row-wrap';
+      wrap.append(row, dissolve);
+      return wrap;
     })
   );
   if (stale()) return;
@@ -858,18 +888,10 @@ modeButtons.groups.addEventListener('click', () => {
   refresh();
 });
 
-// Dissoudre le groupe : dégroupe tous ses onglets d'un coup (ils restent
-// ouverts). Le groupe cesse d'exister une fois vide, donc on repart sur la
-// liste. Non destructif (aucun onglet fermé) : pas de confirmation, comme le
-// « Dissoudre le groupe » natif de Chrome.
+// Dissoudre le groupe affiché, puis revenir à la liste (il n'existe plus).
 document.getElementById('detail-ungroup').addEventListener('click', async () => {
   if (openGroupId == null) return;
-  try {
-    const tabs = await chrome.tabs.query({ groupId: openGroupId });
-    if (tabs.length) await chrome.tabs.ungroup(tabs.map((tab) => tab.id));
-  } catch {
-    // groupe déjà disparu entre-temps : la liste sera à jour au refresh
-  }
+  await dissolveGroup(openGroupId);
   openGroupId = null;
   refresh();
 });
