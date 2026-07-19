@@ -2,6 +2,11 @@
 // + vue détail d'un groupe, calqués sur Chrome iOS.
 
 import { getAllThumbs } from './lib/thumbs.js';
+import {
+  suggestGroupIdentity,
+  dominantChromeColorFromPixels,
+  GROUP_COLORS,
+} from './lib/group-naming.js';
 
 // --- i18n : chaînes dans _locales/, langue de l'UI de Chrome ---
 const t = (key, substitutions) => chrome.i18n.getMessage(key, substitutions);
@@ -21,19 +26,6 @@ for (const el of document.querySelectorAll('[data-i18n-text]')) {
 // Lien de soutien (Ko-fi). Remplace l'URL si ton handle diffère.
 const SUPPORT_URL = 'https://ko-fi.com/sphaax';
 document.getElementById('support-link').href = SUPPORT_URL;
-
-// Palette officielle des groupes d'onglets Chrome.
-const GROUP_COLORS = {
-  grey: '#5f6368',
-  blue: '#1a73e8',
-  red: '#d93025',
-  yellow: '#f9ab00',
-  green: '#188038',
-  pink: '#d01884',
-  purple: '#a142f4',
-  cyan: '#007b83',
-  orange: '#fa903e',
-};
 
 const EMPTY_ICONS = {
   incognito: `
@@ -268,14 +260,50 @@ function isValidGroupTarget(refTab) {
 // Ajoute l'onglet glissé au groupe de la cible, ou crée un nouveau groupe
 // contenant les deux si la cible n'est pas encore groupée. Chrome retire
 // automatiquement l'onglet de son groupe précédent le cas échéant.
+// Couleur de groupe déduite du favicon d'un site. L'API _favicon est servie
+// par notre propre origine (chrome-extension://) : le canvas n'est donc pas
+// « tainted » et ses pixels restent lisibles.
+async function dominantFaviconColor(pageUrl) {
+  try {
+    const response = await fetch(faviconUrl(pageUrl, 32));
+    const bitmap = await createImageBitmap(await response.blob());
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(bitmap, 0, 0);
+    const { data } = context.getImageData(0, 0, bitmap.width, bitmap.height);
+    bitmap.close();
+    return dominantChromeColorFromPixels(data);
+  } catch {
+    return null; // favicon absent/illisible : on garde la couleur déjà choisie
+  }
+}
+
 async function performGroupDrop(dragTabId, refTabId) {
   try {
     const ref = await chrome.tabs.get(refTabId);
     if (ref.groupId !== -1) {
       await chrome.tabs.group({ tabIds: dragTabId, groupId: ref.groupId });
-    } else {
-      await chrome.tabs.group({ tabIds: [dragTabId, ref.id], createProperties: { windowId: ref.windowId } });
+      return;
     }
+    const drag = await chrome.tabs.get(dragTabId);
+    const groupId = await chrome.tabs.group({
+      tabIds: [dragTabId, ref.id],
+      createProperties: { windowId: ref.windowId },
+    });
+    // Nouveau groupe : on lui propose un nom et une couleur déduits des deux
+    // onglets. Sans certitude, on ne touche à rien (groupe sans titre, comme
+    // le ferait Chrome) — le nom reste éditable depuis la pilule de titre.
+    const identity = suggestGroupIdentity([drag, ref], t);
+    if (!identity) return;
+    const { title, color, sameSite } = identity;
+    // Onglets d'un même site : la couleur de marque du favicon est plus
+    // parlante que celle de notre table (bleu Facebook plutôt que rose social).
+    let finalColor = color;
+    if (sameSite) {
+      const brandColor = await dominantFaviconColor(ref.url || ref.pendingUrl || drag.url);
+      if (brandColor) finalColor = brandColor;
+    }
+    await chrome.tabGroups.update(groupId, { title, color: finalColor });
   } catch {
     // onglet fermé pendant le drag : le refresh remettra l'état réel
   }
@@ -627,6 +655,18 @@ async function renderIncognito(incognitoTabs, stale) {
   });
 }
 
+// Dissout un groupe : dégroupe tous ses onglets d'un coup (ils restent
+// ouverts). Le groupe cesse d'exister une fois vide. Non destructif, donc
+// pas de confirmation — comme le « Dissoudre le groupe » natif de Chrome.
+async function dissolveGroup(groupId) {
+  try {
+    const tabs = await chrome.tabs.query({ groupId });
+    if (tabs.length) await chrome.tabs.ungroup(tabs.map((tab) => tab.id));
+  } catch {
+    // groupe déjà disparu entre-temps : le refresh remettra l'état réel
+  }
+}
+
 async function renderGroupsList(stale) {
   const groups = await chrome.tabGroups.query({});
   if (stale()) return;
@@ -685,7 +725,25 @@ async function renderGroupsList(stale) {
         openGroupId = group.id;
         refresh();
       });
-      return row;
+
+      const dissolve = document.createElement('button');
+      dissolve.className = 'group-dissolve';
+      dissolve.title = t('dissolveGroup');
+      dissolve.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+        '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/>' +
+        '</svg>';
+      dissolve.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        await dissolveGroup(group.id);
+        refresh();
+      });
+
+      // Conteneur : les deux boutons sont frères (pas de <button> imbriqué).
+      const wrap = document.createElement('div');
+      wrap.className = 'group-row-wrap';
+      wrap.append(row, dissolve);
+      return wrap;
     })
   );
   if (stale()) return;
@@ -844,6 +902,14 @@ modeButtons.tabs.addEventListener('click', () => {
 });
 modeButtons.groups.addEventListener('click', () => {
   mode = 'groups';
+  openGroupId = null;
+  refresh();
+});
+
+// Dissoudre le groupe affiché, puis revenir à la liste (il n'existe plus).
+document.getElementById('detail-ungroup').addEventListener('click', async () => {
+  if (openGroupId == null) return;
+  await dissolveGroup(openGroupId);
   openGroupId = null;
   refresh();
 });

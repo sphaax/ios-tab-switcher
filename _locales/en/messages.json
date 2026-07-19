@@ -23,6 +23,9 @@
   "closeGroup": {
     "message": "Close group view"
   },
+  "dissolveGroup": {
+    "message": "Ungroup all tabs"
+  },
   "renameGroup": {
     "message": "Rename group"
   },
@@ -115,5 +118,29 @@
   },
   "emptyGroupsSubtitle": {
     "message": "Group tabs in Chrome (right-click a tab → “Add tab to new group”) or create one with the + button."
+  },
+  "groupWork": {
+    "message": "Work"
+  },
+  "groupDev": {
+    "message": "Dev"
+  },
+  "groupFinance": {
+    "message": "Finance"
+  },
+  "groupShopping": {
+    "message": "Shopping"
+  },
+  "groupSocial": {
+    "message": "Social"
+  },
+  "groupVideo": {
+    "message": "Watching"
+  },
+  "groupNews": {
+    "message": "News"
+  },
+  "groupLearning": {
+    "message": "Learning"
   }
 }
