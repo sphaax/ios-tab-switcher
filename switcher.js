@@ -2,7 +2,11 @@
 // + vue détail d'un groupe, calqués sur Chrome iOS.
 
 import { getAllThumbs } from './lib/thumbs.js';
-import { suggestGroupIdentity } from './lib/group-naming.js';
+import {
+  suggestGroupIdentity,
+  dominantChromeColorFromPixels,
+  GROUP_COLORS,
+} from './lib/group-naming.js';
 
 // --- i18n : chaînes dans _locales/, langue de l'UI de Chrome ---
 const t = (key, substitutions) => chrome.i18n.getMessage(key, substitutions);
@@ -22,19 +26,6 @@ for (const el of document.querySelectorAll('[data-i18n-text]')) {
 // Lien de soutien (Ko-fi). Remplace l'URL si ton handle diffère.
 const SUPPORT_URL = 'https://ko-fi.com/sphaax';
 document.getElementById('support-link').href = SUPPORT_URL;
-
-// Palette officielle des groupes d'onglets Chrome.
-const GROUP_COLORS = {
-  grey: '#5f6368',
-  blue: '#1a73e8',
-  red: '#d93025',
-  yellow: '#f9ab00',
-  green: '#188038',
-  pink: '#d01884',
-  purple: '#a142f4',
-  cyan: '#007b83',
-  orange: '#fa903e',
-};
 
 const EMPTY_ICONS = {
   incognito: `
@@ -269,6 +260,24 @@ function isValidGroupTarget(refTab) {
 // Ajoute l'onglet glissé au groupe de la cible, ou crée un nouveau groupe
 // contenant les deux si la cible n'est pas encore groupée. Chrome retire
 // automatiquement l'onglet de son groupe précédent le cas échéant.
+// Couleur de groupe déduite du favicon d'un site. L'API _favicon est servie
+// par notre propre origine (chrome-extension://) : le canvas n'est donc pas
+// « tainted » et ses pixels restent lisibles.
+async function dominantFaviconColor(pageUrl) {
+  try {
+    const response = await fetch(faviconUrl(pageUrl, 32));
+    const bitmap = await createImageBitmap(await response.blob());
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(bitmap, 0, 0);
+    const { data } = context.getImageData(0, 0, bitmap.width, bitmap.height);
+    bitmap.close();
+    return dominantChromeColorFromPixels(data);
+  } catch {
+    return null; // favicon absent/illisible : on garde la couleur déjà choisie
+  }
+}
+
 async function performGroupDrop(dragTabId, refTabId) {
   try {
     const ref = await chrome.tabs.get(refTabId);
@@ -285,7 +294,16 @@ async function performGroupDrop(dragTabId, refTabId) {
     // onglets. Sans certitude, on ne touche à rien (groupe sans titre, comme
     // le ferait Chrome) — le nom reste éditable depuis la pilule de titre.
     const identity = suggestGroupIdentity([drag, ref], t);
-    if (identity) await chrome.tabGroups.update(groupId, identity);
+    if (!identity) return;
+    const { title, color, sameSite } = identity;
+    // Onglets d'un même site : la couleur de marque du favicon est plus
+    // parlante que celle de notre table (bleu Facebook plutôt que rose social).
+    let finalColor = color;
+    if (sameSite) {
+      const brandColor = await dominantFaviconColor(ref.url || ref.pendingUrl || drag.url);
+      if (brandColor) finalColor = brandColor;
+    }
+    await chrome.tabGroups.update(groupId, { title, color: finalColor });
   } catch {
     // onglet fermé pendant le drag : le refresh remettra l'état réel
   }
