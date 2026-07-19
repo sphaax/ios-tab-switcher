@@ -848,6 +848,22 @@ modeButtons.groups.addEventListener('click', () => {
   refresh();
 });
 
+// Dissoudre le groupe : dégroupe tous ses onglets d'un coup (ils restent
+// ouverts). Le groupe cesse d'exister une fois vide, donc on repart sur la
+// liste. Non destructif (aucun onglet fermé) : pas de confirmation, comme le
+// « Dissoudre le groupe » natif de Chrome.
+document.getElementById('detail-ungroup').addEventListener('click', async () => {
+  if (openGroupId == null) return;
+  try {
+    const tabs = await chrome.tabs.query({ groupId: openGroupId });
+    if (tabs.length) await chrome.tabs.ungroup(tabs.map((tab) => tab.id));
+  } catch {
+    // groupe déjà disparu entre-temps : la liste sera à jour au refresh
+  }
+  openGroupId = null;
+  refresh();
+});
+
 document.getElementById('detail-close').addEventListener('click', () => {
   openGroupId = null;
   refresh();

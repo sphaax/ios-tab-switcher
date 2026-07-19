@@ -31,7 +31,7 @@ Visual references: [docs/reference.jpg](docs/reference.jpg) (phone), [docs/refer
 
 - **Tabs** (counter, center): the classic grid.
 - **Private browsing** (hat icon, left): incognito tabs, dark cards, active tab ringed in white. Requires allowing the extension in incognito (`chrome://extensions` → Details → "Allow in Incognito"). Incognito thumbnails are kept in memory only (`storage.session`), never written to disk, and vanish when Chrome closes. Chrome limitation: an extension page cannot be displayed *inside* a private window ("spanning" incognito mode); when invoked from a private window, the switcher therefore opens in a normal window, directly in private mode, and returns focus to the private window on close.
-- **Groups** (grid icon, right): the list of your real Chrome tab groups. Click a group → detail view tinted with the group's color, where you can rename the group and change its color from the title pill; the **+** adds a tab directly to the group. From the list, the **+** creates a new Chrome group.
+- **Groups** (grid icon, right): the list of your real Chrome tab groups. Click a group → detail view tinted with the group's color, where you can rename the group and change its color from the title pill; the **+** adds a tab directly to the group, and the circular ungroup button in the top-right dissolves the group (ungroups all its tabs at once — they stay open). From the list, the **+** creates a new Chrome group.
 
 ## How previews work
 

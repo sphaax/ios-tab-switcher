@@ -23,6 +23,9 @@
   "closeGroup": {
     "message": "Fermer le groupe"
   },
+  "dissolveGroup": {
+    "message": "Dissoudre le groupe"
+  },
   "renameGroup": {
     "message": "Renommer le groupe"
   },

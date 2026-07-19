@@ -23,6 +23,9 @@
   "closeGroup": {
     "message": "Close group view"
   },
+  "dissolveGroup": {
+    "message": "Ungroup all tabs"
+  },
   "renameGroup": {
     "message": "Rename group"
   },

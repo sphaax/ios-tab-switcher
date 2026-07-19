@@ -356,7 +356,13 @@ body[data-view="group-detail"] {
   border-color: #fff;
 }
 
-.detail-close {
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -367,9 +373,10 @@ body[data-view="group-detail"] {
   background: rgba(255, 255, 255, 0.14);
   color: #fff;
   cursor: pointer;
+  transition: background 0.15s ease;
 }
 
-.detail-close:hover {
+.detail-btn:hover {
   background: rgba(255, 255, 255, 0.24);
 }
 
