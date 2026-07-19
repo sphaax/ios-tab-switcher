@@ -2,6 +2,7 @@
 // + vue détail d'un groupe, calqués sur Chrome iOS.
 
 import { getAllThumbs } from './lib/thumbs.js';
+import { suggestGroupIdentity } from './lib/group-naming.js';
 
 // --- i18n : chaînes dans _locales/, langue de l'UI de Chrome ---
 const t = (key, substitutions) => chrome.i18n.getMessage(key, substitutions);
@@ -273,9 +274,18 @@ async function performGroupDrop(dragTabId, refTabId) {
     const ref = await chrome.tabs.get(refTabId);
     if (ref.groupId !== -1) {
       await chrome.tabs.group({ tabIds: dragTabId, groupId: ref.groupId });
-    } else {
-      await chrome.tabs.group({ tabIds: [dragTabId, ref.id], createProperties: { windowId: ref.windowId } });
+      return;
     }
+    const drag = await chrome.tabs.get(dragTabId);
+    const groupId = await chrome.tabs.group({
+      tabIds: [dragTabId, ref.id],
+      createProperties: { windowId: ref.windowId },
+    });
+    // Nouveau groupe : on lui propose un nom et une couleur déduits des deux
+    // onglets. Sans certitude, on ne touche à rien (groupe sans titre, comme
+    // le ferait Chrome) — le nom reste éditable depuis la pilule de titre.
+    const identity = suggestGroupIdentity([drag, ref], t);
+    if (identity) await chrome.tabGroups.update(groupId, identity);
   } catch {
     // onglet fermé pendant le drag : le refresh remettra l'état réel
   }

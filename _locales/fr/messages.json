@@ -118,5 +118,29 @@
   },
   "emptyGroupsSubtitle": {
     "message": "Regroupez des onglets dans Chrome (clic droit sur un onglet → « Ajouter l’onglet à un nouveau groupe ») ou créez-en un avec le bouton +."
+  },
+  "groupWork": {
+    "message": "Travail"
+  },
+  "groupDev": {
+    "message": "Dev"
+  },
+  "groupFinance": {
+    "message": "Finances"
+  },
+  "groupShopping": {
+    "message": "Achats"
+  },
+  "groupSocial": {
+    "message": "Social"
+  },
+  "groupVideo": {
+    "message": "Vidéo"
+  },
+  "groupNews": {
+    "message": "Actualités"
+  },
+  "groupLearning": {
+    "message": "Apprentissage"
   }
 }
