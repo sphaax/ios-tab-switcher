@@ -13,7 +13,7 @@ Tab Switcher (iOS Style)
 
 ### Summary (short description — max 132 characters)
 ```
-See all your tabs as a grid of live-preview cards — an iOS-style tab switcher with search, groups, and window sections.
+See all your tabs as a grid of live previews — an iOS-style switcher with search, drag-to-group, and duplicate cleanup.
 ```
 
 ### Category
@@ -40,21 +40,27 @@ FEATURES
 
 • Search — start typing to instantly filter your tabs by title or URL. Press Enter to open the first match.
 
-• Per-window sections — with several windows open, the grid is split into a labelled section per window, your current window first.
+• Drag & drop — drag a card onto another to reorder your real tabs, or drop it in the middle of a card to group the two together. Works across windows, and follows Chrome's own rules: pinned tabs stay in their zone, groups stay contiguous.
 
-• Tab groups — browse your existing Chrome tab groups, open a group into a color-tinted detail view, and rename or recolor it right there.
+• Smart group names — a group you create that way is named and colored automatically: after the site when both tabs come from one, using that site's own brand color taken from its favicon, or after a shared theme such as Work, Dev, Shopping or News.
+
+• Tab groups — browse your existing Chrome tab groups, open one into a color-tinted detail view, rename or recolor it, lift a single tab out of it, or dissolve the whole group in one click.
+
+• Duplicate tabs — a badge appears only when the same address is open more than once. One click filters the grid down to those tabs, grouped by URL; another closes the extras and keeps one of each.
+
+• Per-window sections — with several windows open, the grid is split into a labelled section per window, your current window first.
 
 • Pinned & audio badges — pinned tabs are marked with a pin you can click to unpin; tabs playing sound show a speaker badge you can click to mute or unmute.
 
 • Private browsing — a dedicated view for your incognito tabs, with previews kept in memory only and never written to disk.
 
-• Keyboard shortcut — open and close the switcher with a shortcut (default Ctrl+Shift+E, customizable at chrome://extensions/shortcuts). Press Escape or the shortcut again to return to your previous tab.
+• Full keyboard control — open and close the switcher with a shortcut (default Ctrl+Shift+E, customizable at chrome://extensions/shortcuts). Inside the grid, move between cards with the arrow keys, open one with Enter, close one with Delete. Escape returns you to your previous tab.
 
 • Clean dark design — a calm, iOS-inspired dark interface with smooth card animations.
 
 100% LOCAL & PRIVATE
 
-Everything stays on your device. The extension has no accounts, no tracking, no analytics, and talks to no servers. Tab previews are stored locally in your browser and are deleted when a tab is closed or the extension is removed. See the privacy policy for details.
+Everything stays on your device. The extension has no accounts, no tracking, no analytics, and talks to no servers — even the automatic group naming and coloring is worked out locally, from a built-in list of sites and the colors in the favicon itself. Tab previews are stored locally in your browser and are deleted when a tab is closed or the extension is removed. See the privacy policy for details.
 
 HOW PREVIEWS WORK
 
@@ -78,7 +84,7 @@ Display the user's open browser tabs as a visual grid of preview cards so they c
 
 **tabs**
 ```
-Used to read the list of open tabs and their titles and URLs so they can be shown as cards, and to activate or close a tab when the user clicks a card or its close button.
+Used to read the list of open tabs and their titles and URLs so they can be shown as cards, and to act on a tab in response to a direct user action in the grid: activate it, close it, reorder it (drag and drop), pin or unpin it, mute or unmute it, and add it to or remove it from a tab group.
 ```
 
 **storage**
@@ -93,7 +99,7 @@ Used to display each site's favicon on its card and in the tab-group previews, v
 
 **tabGroups**
 ```
-Used to display the user's existing Chrome tab groups and to let the user rename a group or change its color from the switcher.
+Used to display the user's existing Chrome tab groups and, in response to a direct user action, to create a new group by dragging one card onto another, set its name and color (including the automatic name/color suggested when it is created), rename or recolor an existing group, and dissolve a group.
 ```
 
 **Host permission — `<all_urls>`**
@@ -140,12 +146,19 @@ https://github.com/sphaax/ios-tab-switcher/blob/main/PRIVACY.md
   Take raw captures of the switcher at any size, drop them in `store-screenshots/raw/`,
   then run `python make-screenshots.py` to convert them to exact 1280×800 images in
   `store-screenshots/out/` (scaled without distortion, padded with black to match the UI).
-  Suggested set, using your own real switcher captures:
-  1. The main grid full of cards — the hero shot. Caption: "All your tabs at a glance."
-  2. Search in action (a query typed, grid filtered). Caption: "Type to find any tab instantly."
-  3. Tab-groups list or a color-tinted group detail view. Caption: "See and edit your tab groups."
-  4. Private-browsing view. Caption: "A separate space for incognito tabs."
-  5. A card showing the audio/pin badges. Caption: "Spot and mute noisy tabs; manage pinned tabs."
+  Captions are matched by a keyword in the filename, so keep the `NN-<keyword>.jpg`
+  naming — the keywords live in `CAPTIONS` in `market-screenshots.py`.
+  Current set (v0.2.x listing):
+  1. `01-grid` — the main grid full of cards, the hero shot. Caption: "All your tabs, at a glance."
+  2. `02-dnd` — a card mid-drag over another, with the dashed "drop to group" outline.
+     Caption: "Drop one tab onto another."
+  3. `03-duplicates` — the "N duplicate tabs" pill active, grid filtered by URL with
+     section headers and the trash button. Caption: "Find every duplicate tab."
+  4. `04-search` — search in action (a query typed, grid filtered). Caption: "Find any tab, instantly."
+  5. `05-private` — private-browsing view. Caption: "A private space, kept private."
+
+  Retired shots (static group detail, pin/audio badges) are kept in
+  `store-screenshots/raw-archive-v1/`.
 - **Small promo tile** (optional, for featuring): 440×280 PNG/JPEG.
 
 ## Before uploading
