@@ -48,6 +48,11 @@ const EMPTY_ICONS = {
     </svg>`,
 };
 
+// Icône du badge épingle (épingler au survol / désépingler).
+const PIN_SVG =
+  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+  '<path d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/>' +
+  '</svg>';
 // Icônes haut-parleur du badge audio (mêmes glyphes que la barre d'onglets).
 const SPEAKER_SVG =
   '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
@@ -346,12 +351,9 @@ function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant, groupF
   const preview = card.querySelector('.card-preview');
   if (tab.pinned) {
     const badge = document.createElement('button');
-    badge.className = 'pin-badge';
+    badge.className = 'pin-badge is-pinned';
     badge.title = t('unpinTab');
-    badge.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
-      '<path d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/>' +
-      '</svg>';
+    badge.innerHTML = PIN_SVG;
     badge.addEventListener('click', (event) => {
       event.stopPropagation();
       chrome.tabs.update(tab.id, { pinned: false });
@@ -372,6 +374,18 @@ function buildCard(tab, { thumbSrc, isActive, groupColor, index, variant, groupF
     badge.addEventListener('click', (event) => {
       event.stopPropagation();
       chrome.tabs.ungroup(tab.id);
+    });
+    preview.appendChild(badge);
+  } else {
+    // Ni épinglé ni groupé : même emplacement, mais le badge n'apparaît qu'au
+    // survol (ou au focus clavier de la carte) — il propose d'épingler.
+    const badge = document.createElement('button');
+    badge.className = 'pin-badge on-hover';
+    badge.title = t('pinTab');
+    badge.innerHTML = PIN_SVG;
+    badge.addEventListener('click', (event) => {
+      event.stopPropagation();
+      chrome.tabs.update(tab.id, { pinned: true });
     });
     preview.appendChild(badge);
   }
@@ -577,7 +591,11 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant, s
   // focus à <body> tout seul, donc `hadGridFocus` lira faux — c'est pour ça
   // que pendingFocusTabId (posé AVANT la fermeture) est un signal séparé,
   // qui doit lui aussi déclencher la restauration.
-  const hadGridFocus = document.activeElement?.closest('.card') != null;
+  // On ne teste que la carte elle-même, pas ses descendants : un clic sur un
+  // badge (épingle, dégrouper, son, fermer) focalise le bouton, qui n'a pas de
+  // data-tab-id — on retomberait alors sur la carte active et on lui donnerait
+  // un focus qu'elle n'a jamais demandé (badge de survol révélé à tort).
+  const hadGridFocus = document.activeElement?.classList.contains('card');
   const focusedTabId = hadGridFocus ? document.activeElement.dataset.tabId : null;
   const shouldRestoreFocus = hadGridFocus || pendingFocusTabId != null;
 

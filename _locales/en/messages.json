@@ -41,6 +41,9 @@
   "closeTab": {
     "message": "Close tab"
   },
+  "pinTab": {
+    "message": "Pin tab"
+  },
   "unpinTab": {
     "message": "Unpin tab"
   },

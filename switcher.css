@@ -594,11 +594,51 @@ body.card-drag .card:hover {
   transform: scale(1.12);
 }
 
+/* Badge « épingler » : discret, il n'apparaît qu'au survol de la carte (ou
+   quand elle a le focus clavier). Reste visible tant qu'on est dessus, sinon
+   il disparaîtrait sous le curseur au moment du clic. Masqué pendant un drag,
+   et affiché en permanence sur les pointeurs sans survol (tactile). */
+.pin-badge.on-hover {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background 0.15s ease, transform 0.12s ease;
+}
+
+.card:hover .pin-badge.on-hover,
+.card:focus .pin-badge.on-hover,
+.pin-badge.on-hover:hover,
+.pin-badge.on-hover:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body.card-drag .pin-badge.on-hover {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (hover: none) {
+  .pin-badge.on-hover {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 .pin-badge svg,
 .ungroup-badge svg,
 .audio-badge svg {
   width: 15px;
   height: 15px;
+}
+
+/* L'épingle penche tant qu'elle n'est que proposée (survol) et se redresse une
+   fois l'onglet épinglé : au clic, elle se « plante » droite. */
+.pin-badge svg {
+  transition: transform 0.15s ease;
+}
+
+.pin-badge.on-hover svg {
+  transform: rotate(45deg);
 }
 
 .card-preview img.thumb {
