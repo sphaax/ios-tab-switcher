@@ -41,6 +41,9 @@
   "closeTab": {
     "message": "Fermer l’onglet"
   },
+  "pinTab": {
+    "message": "Épingler l’onglet"
+  },
   "unpinTab": {
     "message": "Désépingler l’onglet"
   },
