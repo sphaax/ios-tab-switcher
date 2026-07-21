@@ -28,6 +28,8 @@ English (United States)
 
 ### Detailed description
 ```
+NEW IN 0.2.1 — Pin a tab straight from the grid: hover any card and a pin appears in its corner. Click it and the tab is pinned; click the upright pin on an already-pinned card to unpin it.
+
 Bring the familiar iOS-style tab switcher to your desktop.
 
 Tab Switcher (iOS Style) opens a full-screen grid of all your open tabs as rounded cards with live screenshot previews, so you can spot the one you want at a glance instead of squinting at a crowded tab strip.
@@ -50,7 +52,7 @@ FEATURES
 
 • Per-window sections — with several windows open, the grid is split into a labelled section per window, your current window first.
 
-• Pinned & audio badges — pinned tabs are marked with a pin you can click to unpin; tabs playing sound show a speaker badge you can click to mute or unmute.
+• Pin & audio badges — pin a tab without leaving the grid: hover a card and a tilted pin appears in its corner, one click and the tab is pinned. Pinned cards keep the pin upright, and clicking it unpins them. Tabs playing sound show a speaker badge you can click to mute or unmute.
 
 • Private browsing — a dedicated view for your incognito tabs, with previews kept in memory only and never written to disk.
 
