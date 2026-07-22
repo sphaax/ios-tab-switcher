@@ -84,7 +84,16 @@ const SIZES = [
     await page.waitForSelector('.grid .card', { timeout: 10000 });
     // Laisse la cascade d'apparition et la peinture des fonds de groupe finir.
     await page.waitForTimeout(1500);
-    const out = path.join(outDir, `iter-${ITER}-${size.label}.png`);
+    // FOCUS_NTH=<n> : simule la navigation clavier en focalisant la n-ième
+    // carte de la grille (pour tester l'état de focus, ex. le cadre bleu).
+    let suffix = '';
+    if (process.env.FOCUS_NTH != null) {
+      const n = Number(process.env.FOCUS_NTH);
+      await page.evaluate((i) => document.querySelectorAll('.grid .card')[i]?.focus(), n);
+      await page.waitForTimeout(200);
+      suffix = `-focus${n}`;
+    }
+    const out = path.join(outDir, `iter-${ITER}${suffix}-${size.label}.png`);
     await page.screenshot({ path: out, fullPage: true });
     console.log('saved', path.relative(ROOT, out));
     await page.close();

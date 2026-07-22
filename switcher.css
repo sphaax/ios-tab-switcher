@@ -456,22 +456,26 @@ body[data-view="group-detail"] .grid {
    `:focus` plutôt que `:focus-visible` : l'heuristique clavier/souris de ce
    dernier n'est pas fiable sur un élément non natif (article role="button") ;
    un clic déclenche brièvement le bleu, mais le switcher se ferme aussitôt. */
-.card.is-active .card-header,
+/* Tant que le clavier ne pilote pas la navigation (aucune carte focalisée),
+   c'est l'onglet actif qui porte le cadre bleu. Dès qu'une carte est focalisée
+   au clavier, `.grid:not(:focus-within)` cesse de matcher : l'actif reprend sa
+   couleur normale (groupe ou défaut) et seule la carte focalisée reste bleue. */
+.grid:not(:focus-within) .card.is-active .card-header,
 .card:focus .card-header {
   background: var(--accent);
 }
 
-.card.is-active .card-title,
+.grid:not(:focus-within) .card.is-active .card-title,
 .card:focus .card-title {
   color: #fff;
 }
 
-.card.is-active .card-close,
+.grid:not(:focus-within) .card.is-active .card-close,
 .card:focus .card-close {
   color: rgba(255, 255, 255, 0.85);
 }
 
-.card.is-active .card-close:hover,
+.grid:not(:focus-within) .card.is-active .card-close:hover,
 .card:focus .card-close:hover {
   background: rgba(255, 255, 255, 0.22);
   color: #fff;
