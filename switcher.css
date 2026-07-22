@@ -460,29 +460,70 @@ body[data-view="group-detail"] .grid {
   color: #fff;
 }
 
-/* Onglet dans un groupe : un mince anneau de la couleur du groupe. Le fond
-   coloré du groupe est dessiné DERRIÈRE (overlay SVG), pas par la carte. */
+/* Onglet dans un groupe : un mince anneau de la couleur du groupe (utile hors
+   conteneur, ex. vue doublons à plat). Dans un conteneur, il est redondant. */
 .card.in-group {
   --shadow-group: 0 0 0 2px var(--group-color);
 }
 
-/* ---------- Fonds de groupe (essai) ---------- */
-
-/* L'overlay SVG épouse les cellules réellement occupées par le groupe (coins
-   convexes ET concaves quand le groupe déborde de ligne). `isolation` crée un
-   contexte d'empilement pour que le z-index négatif place l'overlay derrière
-   les cartes (en flux) mais devant le fond de la grille. */
-.grid {
-  position: relative;
-  isolation: isolate;
+.group-box .card.in-group {
+  --shadow-group: 0 0 transparent;
 }
 
-.group-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: -1;
-  pointer-events: none;
+/* ---------- Conteneur de groupe ---------- */
+
+/* Une suite d'onglets d'un même groupe : conteneur pleine largeur, fond
+   teinté de la couleur du groupe, en-tête pastille + nom + compteur. */
+.group-box {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--group-color) 13%, transparent);
+}
+
+.group-box-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 2px 4px;
+}
+
+.group-box-dot {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--group-color);
+}
+
+.group-box-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.group-box-name.is-unnamed {
+  font-style: italic;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.group-box-count {
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--group-color) 55%, transparent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.group-box-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
 }
 
 /* Navigation clavier (flèches). `:focus` plutôt que `:focus-visible` :

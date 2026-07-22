@@ -151,3 +151,6 @@ store-screenshots/
 # Python bytecode cache
 __pycache__/
 *.pyc
+
+# Test harness output (screenshots regenerated on demand)
+test/shots/

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Fixture — grille de groupes</title>
+  <link rel="stylesheet" href="/switcher.css">
+</head>
+<body data-view="tabs">
+  <!--
+    Harnais de test (dev-only) : monte la vraie vue grille de l'extension avec
+    des chrome.* mockés et des données factices couvrant les cas limites.
+    N'est PAS embarqué dans l'extension (voir build.ps1). Charge switcher.js
+    tel quel — donc tout changement de rendu se reflète ici sans divergence.
+  -->
+  <script>
+  // --- Données factices : hiérarchie fenêtre > groupe > onglet ---
+  (function () {
+    let nextId = 1;
+    const tabs = [];
+    const groups = [];
+    const SELF_ID = 999;
+
+    // Fabrique un onglet. `bad` => favicon manquante (URL que le faux serveur 404e).
+    function tab(win, group, title, { bad = false, audible = false } = {}) {
+      const id = nextId++;
+      const host = bad ? 'nofav.example' : `site${id}.example`;
+      tabs.push({
+        id,
+        title,
+        url: `https://${host}/page/${id}`,
+        windowId: win,
+        groupId: group,
+        index: tabs.length,
+        pinned: false,
+        active: false,
+        incognito: false,
+        audible,
+        mutedInfo: { muted: false },
+      });
+      return id;
+    }
+    function group(id, win, title, color) {
+      groups.push({ id, title, color, windowId: win, collapsed: false });
+    }
+
+    // Fenêtre 1 : groupe bleu nommé (6), groupe rouge SANS nom (2), 4 libres.
+    group(101, 1, 'Recherche design', 'blue');
+    group(102, 1, '', 'red');
+    tab(1, -1, 'Gmail');
+    tab(1, -1, 'X');
+    tab(1, 101, 'Dribbble — Discover the world’s top designers & creative professionals');
+    tab(1, 101, 'Figma');
+    const activeBlue = tab(1, 101, 'Behance');
+    tab(1, 101, 'Awwwards - Website Awards - Best Web Design Trends');
+    tab(1, 101, 'Mobbin');
+    tab(1, 101, 'UI', { bad: true });
+    tab(1, 102, 'Facture 2026-07.pdf');
+    tab(1, 102, 'Banque', { audible: true });
+    tab(1, -1, 'GitHub — sphaax/ios-tab-switcher: an iOS-style tab switcher for desktop Chrome');
+    tab(1, -1, 'Docs', { bad: true });
+
+    // Fenêtre 2 : groupe d’1 onglet, groupe de 12 (retour à la ligne), 1 libre.
+    group(201, 2, 'Perso', 'green');
+    group(202, 2, 'Veille', 'purple');
+    tab(2, 201, 'Notion');
+    tab(2, -1, 'Reddit');
+    const long = 'Un titre très long qui doit être tronqué proprement dans la carte';
+    for (let i = 0; i < 12; i++) {
+      tab(2, 202, i % 3 === 0 ? long : i % 3 === 1 ? 'Article ' + (i + 1) : 'RSS', { bad: i % 4 === 0 });
+    }
+
+    const lastActive = { 1: activeBlue, 2: 0 };
+
+    // --- i18n : chargé depuis les vraies chaînes en/ ---
+    let messages = {};
+    function getMessage(key, subs) {
+      const raw = messages[key]?.message;
+      if (raw == null) return key;
+      const s = Array.isArray(subs) ? subs : subs != null ? [subs] : [];
+      let i = 0;
+      return raw.replace(/\$\w+\$/g, () => s[i++] ?? '').replace(/\$(\d)/g, (_, d) => s[d - 1] ?? '');
+    }
+
+    const noop = () => {};
+    const listener = { addListener: noop, removeListener: noop };
+    const resolved = (v) => Promise.resolve(v);
+
+    window.chrome = {
+      i18n: { getMessage, getUILanguage: () => 'fr' },
+      runtime: {
+        getURL: (p) => new URL(p, location.origin).toString(),
+        onMessage: listener,
+      },
+      tabs: {
+        getCurrent: () => resolved({ id: SELF_ID, windowId: 1 }),
+        query: () => resolved(tabs.map((t) => ({ ...t }))),
+        get: (id) => resolved(tabs.find((t) => t.id === id) || { incognito: false }),
+        onCreated: listener, onUpdated: listener, onMoved: listener,
+        onAttached: listener, onDetached: listener, onActivated: listener,
+        onRemoved: listener,
+        update: noop, remove: noop, create: noop, move: noop,
+        group: noop, ungroup: noop,
+      },
+      tabGroups: {
+        query: () => resolved(groups.map((g) => ({ ...g }))),
+        get: (id) => resolved(groups.find((g) => g.id === id)),
+        update: noop,
+        onCreated: listener, onUpdated: listener, onMoved: listener, onRemoved: listener,
+      },
+      windows: {
+        getAll: () => resolved([]),
+        create: noop, update: noop,
+      },
+      storage: {
+        session: {
+          get: (keys) => {
+            const store = { lastActive };
+            if (typeof keys === 'string') return resolved({ [keys]: store[keys] });
+            if (Array.isArray(keys)) {
+              const out = {};
+              for (const k of keys) out[k] = store[k];
+              return resolved(out);
+            }
+            return resolved({ ...store });
+          },
+        },
+      },
+      extension: { isAllowedIncognitoAccess: () => resolved(false) },
+    };
+
+    // Charge les vraies chaînes puis démarre le vrai switcher.js.
+    (async () => {
+      try {
+        messages = await (await fetch('/_locales/fr/messages.json')).json();
+      } catch (_) {}
+      await import('/switcher.js');
+      // Signale au script de capture que le premier rendu est demandé.
+      window.__fixtureReady = true;
+    })();
+  })();
+  </script>
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="search-pill">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"/>
+        </svg>
+        <input id="search-input" type="text" spellcheck="false" autocomplete="off"
+               data-i18n-placeholder="searchPlaceholder">
+      </div>
+      <button class="duplicates-pill" id="duplicates-pill" hidden>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+        <span id="duplicates-count"></span>
+      </button>
+      <button class="duplicates-close-btn" id="duplicates-close-btn" hidden data-i18n-title="closeDuplicates">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="topbar-pill">
+      <button class="mode-btn" id="mode-incognito" data-i18n-title="modePrivate">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.06 13c-1.86 0-3.42 1.33-3.82 3.1-.95-.41-1.82-.3-2.48-.01C10.35 14.31 8.79 13 6.94 13 4.77 13 3 14.79 3 17s1.77 4 3.94 4c2.06 0 3.74-1.62 3.9-3.68.34-.24 1.23-.69 2.32.02.18 2.05 1.84 3.66 3.9 3.66 2.17 0 3.94-1.79 3.94-4s-1.77-4-3.94-4M6.94 19.86c-1.56 0-2.81-1.28-2.81-2.86s1.26-2.86 2.81-2.86c1.56 0 2.81 1.28 2.81 2.86s-1.25 2.86-2.81 2.86m10.12 0c-1.56 0-2.81-1.28-2.81-2.86s1.25-2.86 2.81-2.86 2.82 1.28 2.82 2.86-1.27 2.86-2.82 2.86M22 10.5H2V12h20zm-6.47-7.87c-.22-.49-.78-.75-1.31-.58L12 2.79l-2.23-.74-.05-.01c-.53-.15-1.09.13-1.29.64L6 9h12l-2.44-6.32z"/></svg>
+      </button>
+      <span class="pill-sep" id="sep-1" hidden></span>
+      <button class="mode-btn active" id="mode-tabs" data-i18n-title="modeTabs">
+        <span class="counter-box" id="tab-count">0</span>
+      </button>
+      <span class="pill-sep" id="sep-2" hidden></span>
+      <button class="mode-btn" id="mode-groups" data-i18n-title="modeGroups">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm8-2h8v8h-8zm2 2v4h4v-4z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <a class="support-link" id="support-link" target="_blank" rel="noopener noreferrer" data-i18n-title="supportTooltip">
+    <span data-i18n-text="supportBy"></span>
+    <svg class="heart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+  </a>
+
+  <div class="detail-bar" id="detail-bar" hidden>
+    <div class="detail-title">
+      <button class="detail-dot" id="detail-dot" data-i18n-title="changeGroupColor"></button>
+      <input class="detail-name" id="detail-name" maxlength="60" spellcheck="false" data-i18n-placeholder="nameGroupPlaceholder" data-i18n-title="renameGroup">
+      <div class="color-picker" id="color-picker" hidden></div>
+    </div>
+    <div class="detail-actions">
+      <button class="detail-btn" id="detail-ungroup" data-i18n-title="dissolveGroup"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/></svg></button>
+      <button class="detail-btn" id="detail-close" data-i18n-title="closeGroup"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    </div>
+  </div>
+
+  <main class="grid" id="grid"></main>
+  <div class="groups-list" id="groups-list" hidden></div>
+
+  <section class="empty-state" id="empty-state" hidden>
+    <div class="empty-icon" id="empty-icon"></div>
+    <h1 id="empty-title"></h1>
+    <p id="empty-subtitle"></p>
+  </section>
+
+  <button class="fab" id="new-tab-btn" data-i18n-title="newTab">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+  </button>
+
+  <template id="card-template">
+    <article class="card" role="button" tabindex="-1">
+      <div class="card-header">
+        <img class="card-favicon" alt="">
+        <span class="card-title"></span>
+        <button class="card-close">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+      <div class="card-preview"></div>
+    </article>
+  </template>
+</body>
+</html>
