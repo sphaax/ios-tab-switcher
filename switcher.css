@@ -460,8 +460,11 @@ body[data-view="group-detail"] .grid {
    c'est l'onglet actif qui porte le cadre bleu. Dès qu'une carte est focalisée
    au clavier, `.grid:not(:focus-within)` cesse de matcher : l'actif reprend sa
    couleur normale (groupe ou défaut) et seule la carte focalisée reste bleue. */
-.grid:not(:focus-within) .card.is-active .card-header,
-.card:focus .card-header {
+/* Essai : tout le cadre de la carte passe en bleu (fond de la carte), pas
+   seulement la barre de titre — l'aperçu garde son propre fond, entouré d'une
+   marge bleue. `.grid .card:focus` (0,3,0) l'emporte sur `.card.in-group`. */
+.grid:not(:focus-within) .card.is-active,
+.grid .card:focus {
   background: var(--accent);
 }
 
