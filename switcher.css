@@ -460,40 +460,52 @@ body[data-view="group-detail"] .grid {
   color: #fff;
 }
 
+/* Onglet dans un groupe : un mince anneau de la couleur du groupe. Le fond
+   coloré du groupe est dessiné DERRIÈRE (overlay SVG), pas par la carte. */
 .card.in-group {
-  --shadow-group: 0 0 0 3px var(--group-color);
+  --shadow-group: 0 0 0 2px var(--group-color);
 }
 
-/* Dans une bande de groupe, l'anneau par carte est redondant avec le fond
-   coloré de la bande : on le retire pour ne pas surcharger. */
-.group-band .card.in-group {
-  --shadow-group: 0 0 transparent;
+/* ---------- Fonds de groupe (essai) ---------- */
+
+/* L'overlay SVG épouse les cellules réellement occupées par le groupe (coins
+   convexes ET concaves quand le groupe déborde de ligne). `isolation` crée un
+   contexte d'empilement pour que le z-index négatif place l'overlay derrière
+   les cartes (en flux) mais devant le fond de la grille. */
+.grid {
+  position: relative;
+  isolation: isolate;
 }
 
-/* ---------- Bande de groupe (essai) ---------- */
-
-/* Une suite d'onglets d'un même groupe occupe sa propre rangée pleine largeur,
-   sur un fond à la couleur du groupe, avec un label nommant le groupe. */
-.group-band {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  padding: 16px;
-  border-radius: 24px;
-  background: color-mix(in srgb, var(--group-color) 15%, transparent);
+.group-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 
+/* Nom du groupe, vertical, plaqué sur le bord gauche de sa première rangée —
+   n'occupe aucune cellule de la grille, donc l'espacement reste intact. */
 .group-band-label {
-  grid-column: 1 / -1;
-  justify-self: start;
-  margin-bottom: 2px;
-  padding: 5px 15px;
-  border-radius: 999px;
+  position: absolute;
+  z-index: 1;
+  width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  border-radius: 8px;
   background: var(--group-color);
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 /* Navigation clavier (flèches). `:focus` plutôt que `:focus-visible` :
