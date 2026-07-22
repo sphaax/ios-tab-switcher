@@ -526,7 +526,7 @@ function thumbSrcFromBlob(tabId, record) {
 // — utilisée par la vue doublons (groupée par URL). Par défaut, sectionnement
 // par fenêtre Chrome (la fenêtre d'origine d'abord ; à fenêtre unique, pas
 // d'en-tête — grille plate).
-function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant, sections }) {
+function renderCards(tabs, { thumbSrcFor, lastActive, groupInfoById, variant, sections }) {
   let sectionList = sections;
   if (!sectionList) {
     const primaryWindowId = sourceWindowId ?? selfTab.windowId;
@@ -553,6 +553,19 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant, s
 
   const fragment = document.createDocumentFragment();
   let index = 0;
+  // La cascade rayonne depuis la carte active : le compteur `index` avance
+  // carte par carte, indépendamment du regroupement en bandes.
+  const makeCard = (tab, groupColor, groupFirst, groupLast) =>
+    buildCard(tab, {
+      thumbSrc: thumbSrcFor(tab),
+      isActive: isActiveMap.get(tab.id),
+      groupColor,
+      index: Math.abs(index++ - activeIndex),
+      variant,
+      groupFirst,
+      groupLast,
+    });
+
   for (const section of sectionList) {
     if (section.label) {
       const label = document.createElement('h2');
@@ -560,27 +573,50 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupColorById, variant, s
       label.textContent = section.label;
       fragment.appendChild(label);
     }
-    section.tabs.forEach((tab, position) => {
-      // Bords de groupe : seuls points d'insertion valides pour un onglet
-      // extérieur au groupe (un groupe reste contigu). N'a de sens que si
-      // l'ordre de la section reflète l'adjacence réelle des onglets (pas
-      // le cas de la vue doublons, groupée par URL).
-      const prevTab = section.contiguousGroups ? section.tabs[position - 1] : null;
-      const nextTab = section.contiguousGroups ? section.tabs[position + 1] : null;
+    // Essai : on enveloppe chaque suite contiguë d'onglets d'un même groupe
+    // dans une « bande » — fond à la couleur du groupe, coins arrondis, label
+    // avec le nom. N'a de sens que si l'ordre de la section reflète
+    // l'adjacence réelle (pas la vue doublons, groupée par URL) et si on
+    // connaît les groupes (pas la vue privée).
+    const canBand = groupInfoById && section.contiguousGroups;
+    let i = 0;
+    while (i < section.tabs.length) {
+      const tab = section.tabs[i];
+      if (canBand && tab.groupId !== -1) {
+        const start = i;
+        while (i < section.tabs.length && section.tabs[i].groupId === tab.groupId) i++;
+        const run = section.tabs.slice(start, i);
+        const info = groupInfoById.get(tab.groupId);
+        const color = info?.color || '#5f6368';
+        const band = document.createElement('div');
+        band.className = 'group-band';
+        band.style.setProperty('--group-color', color);
+        const label = document.createElement('div');
+        label.className = 'group-band-label';
+        label.textContent = info?.title || t('unnamedGroup');
+        band.appendChild(label);
+        run.forEach((rtab, ri) => {
+          band.appendChild(makeCard(rtab, color, ri === 0, ri === run.length - 1));
+        });
+        fragment.appendChild(band);
+        continue;
+      }
+      // Onglet hors bande : soit non groupé, soit vue sans regroupement.
+      // Les bords de groupe restent calculés (vue doublons/privée à plat).
+      const prevTab = section.contiguousGroups ? section.tabs[i - 1] : null;
+      const nextTab = section.contiguousGroups ? section.tabs[i + 1] : null;
+      const groupColor =
+        groupInfoById && tab.groupId !== -1 ? groupInfoById.get(tab.groupId)?.color || null : null;
       fragment.appendChild(
-        buildCard(tab, {
-          thumbSrc: thumbSrcFor(tab),
-          isActive: isActiveMap.get(tab.id),
-          groupColor:
-            groupColorById && tab.groupId !== -1 ? groupColorById.get(tab.groupId) : null,
-          index: Math.abs(index - activeIndex),
-          variant,
-          groupFirst: tab.groupId !== -1 && prevTab?.groupId !== tab.groupId,
-          groupLast: tab.groupId !== -1 && nextTab?.groupId !== tab.groupId,
-        })
+        makeCard(
+          tab,
+          groupColor,
+          tab.groupId !== -1 && prevTab?.groupId !== tab.groupId,
+          tab.groupId !== -1 && nextTab?.groupId !== tab.groupId
+        )
       );
-      index++;
-    });
+      i++;
+    }
   }
 
   // Les cartes sont entièrement recréées à chaque rendu (replaceChildren) :
@@ -633,7 +669,10 @@ async function renderTabs(normalTabs, stale) {
     chrome.storage.session.get('lastActive'),
   ]);
   if (stale()) return;
-  const groupColorById = new Map(groups.map((g) => [g.id, GROUP_COLORS[g.color] || '#5f6368']));
+  // Couleur ET nom par groupe : la bande de groupe (essai) affiche un label.
+  const groupInfoById = new Map(
+    groups.map((g) => [g.id, { color: GROUP_COLORS[g.color] || '#5f6368', title: g.title || '' }])
+  );
 
   updateDuplicatesPill(normalTabs);
   const sections = duplicatesOnly ? buildDuplicateSections() : undefined;
@@ -641,7 +680,7 @@ async function renderTabs(normalTabs, stale) {
   renderCards(shown, {
     thumbSrcFor: (tab) => thumbSrcFromBlob(tab.id, thumbs.get(tab.id)),
     lastActive: session.lastActive || {},
-    groupColorById,
+    groupInfoById,
     sections,
   });
 }
