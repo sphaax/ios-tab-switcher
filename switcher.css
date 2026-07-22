@@ -396,12 +396,25 @@ body[data-view="group-detail"] .grid {
 }
 
 /* En-tête de section par fenêtre Chrome (visible avec plusieurs fenêtres). */
+/* En-tête de fenêtre : niveau supérieur de la hiérarchie fenêtre > groupe >
+   onglet, donc plus affirmé que les en-têtes de groupe (texte clair, plus
+   grand, filet de séparation sur toute la largeur). */
 .window-label {
   grid-column: 1 / -1;
-  margin: 14px 4px 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 30px 2px 4px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f1f3f4;
+}
+
+.window-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .window-label:first-child {
@@ -436,24 +449,62 @@ body[data-view="group-detail"] .grid {
   --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
-.card.is-active {
-  outline: 4px solid var(--accent);
-  outline-offset: 2px;
+/* Onglet actif OU carte focalisée au clavier : en-tête rempli du bleu du cadre,
+   comme la carte surlignée de l'icône de l'extension. C'est ce bleu — et non un
+   outline ou un anneau blanc — qui signale « l'onglet où je suis » / la cible
+   de la navigation clavier.
+   `:focus` plutôt que `:focus-visible` : l'heuristique clavier/souris de ce
+   dernier n'est pas fiable sur un élément non natif (article role="button") ;
+   un clic déclenche brièvement le bleu, mais le switcher se ferme aussitôt. */
+/* Tant que le clavier ne pilote pas la navigation (aucune carte focalisée),
+   c'est l'onglet actif qui porte le cadre bleu. Dès qu'une carte est focalisée
+   au clavier, `.grid:not(:focus-within)` cesse de matcher : l'actif reprend sa
+   couleur normale (groupe ou défaut) et seule la carte focalisée reste bleue. */
+/* Essai : tout le cadre de la carte passe en bleu (fond de la carte), pas
+   seulement la barre de titre — l'aperçu garde son propre fond, entouré d'une
+   marge bleue. `.grid .card:focus` (0,3,0) l'emporte sur `.card.in-group`. */
+.grid:not(:focus-within) .card.is-active,
+.grid .card:focus {
+  background: var(--accent);
 }
 
-.card.in-group {
-  --shadow-group: 0 0 0 3px var(--group-color);
+.grid:not(:focus-within) .card.is-active .card-title,
+.card:focus .card-title {
+  color: #fff;
 }
 
-/* Navigation clavier (flèches). `:focus` plutôt que `:focus-visible` :
-   l'heuristique "clavier vs souris" de ce dernier peut ne pas se déclencher
-   de façon fiable sur un élément non natif (article role="button"). Un clic
-   souris déclenchera aussi brièvement l'anneau, mais le switcher se ferme
-   aussitôt après un clic sur une carte — le risque visuel est nul en pratique. */
+.grid:not(:focus-within) .card.is-active .card-close,
+.card:focus .card-close {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.grid:not(:focus-within) .card.is-active .card-close:hover,
+.card:focus .card-close:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
 .card:focus {
-  /* Deux ombres dans une seule variable (box-shadow accepte une liste) :
-     un anneau net + un halo doux pour plus de présence. */
-  --shadow-focus: 0 0 0 4px rgba(255, 255, 255, 0.95), 0 0 16px 2px rgba(255, 255, 255, 0.5);
+  outline: none;
+}
+
+/* Onglet dans un groupe : fond de carte teinté de la couleur du groupe (le
+   cadre pâle relie visuellement les cartes d'un même groupe dans la grille
+   continue). L'aperçu garde son propre fond ; seuls l'en-tête et la marge de
+   la carte se teintent. */
+.card.in-group {
+  --shadow-group: 0 0 transparent;
+  background: color-mix(in srgb, var(--group-color) 20%, var(--card-bg));
+}
+
+/* Un mince liseré au bord entrant/sortant marque le début et la fin de la
+   suite dans le flux continu (via --shadow-group, il compose avec le survol). */
+.card.in-group.group-first {
+  --shadow-group: inset 3px 0 0 var(--group-color);
+}
+
+.card.in-group.group-last {
+  --shadow-group: inset -3px 0 0 var(--group-color);
 }
 
 /* --- Glisser-déposer : réordonner les onglets --- */
@@ -685,10 +736,6 @@ body.card-drag .pin-badge.on-hover {
   background: #3a3a3c;
 }
 
-.card.incog.is-active {
-  outline-color: #fff;
-}
-
 /* Variante teintée (vue détail de groupe) : header pastel de la couleur. */
 .card.tinted {
   background: color-mix(in srgb, var(--group-base) 15%, #fff);
@@ -696,10 +743,6 @@ body.card-drag .pin-badge.on-hover {
 
 .card.tinted .card-preview {
   background: color-mix(in srgb, var(--group-base) 28%, #fff);
-}
-
-.card.tinted.is-active {
-  outline-color: #fff;
 }
 
 /* ---------- Liste des groupes ---------- */
