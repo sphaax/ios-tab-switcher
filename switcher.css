@@ -485,29 +485,6 @@ body[data-view="group-detail"] .grid {
   pointer-events: none;
 }
 
-/* Nom du groupe, vertical, plaqué sur le bord gauche de sa première rangée —
-   n'occupe aucune cellule de la grille, donc l'espacement reste intact. */
-.group-band-label {
-  position: absolute;
-  z-index: 1;
-  width: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 0;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  border-radius: 8px;
-  background: var(--group-color);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  pointer-events: none;
-}
-
 /* Navigation clavier (flèches). `:focus` plutôt que `:focus-visible` :
    l'heuristique "clavier vs souris" de ce dernier peut ne pas se déclencher
    de façon fiable sur un élément non natif (article role="button"). Un clic

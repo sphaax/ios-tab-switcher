@@ -688,7 +688,9 @@ function roundedRectilinearPath(points, r) {
     const p2x = curr.x + u2x * rr;
     const p2y = curr.y + u2y * rr;
     const cross = u1x * u2y - u1y * u2x;
-    const sweep = cross < 0 ? 1 : 0; // horaire : convexe = 1, concave = 0
+    // Polygone parcouru dans le sens horaire en repère écran (y vers le bas) :
+    // coin convexe (cross > 0) => arc horaire = sweep 1 ; concave => sweep 0.
+    const sweep = cross > 0 ? 1 : 0;
     d += i === 0 ? `M ${p1x} ${p1y}` : ` L ${p1x} ${p1y}`;
     d += ` A ${rr} ${rr} 0 0 ${sweep} ${p2x} ${p2y}`;
   }
@@ -717,7 +719,6 @@ function bandPolygon(rows) {
 function paintGroupBands() {
   // On repart de zéro à chaque passe (overlay recréé sous les cartes).
   grid.querySelector('.group-overlay')?.remove();
-  for (const el of grid.querySelectorAll('.group-band-label')) el.remove();
   if (!groupBands) return;
 
   const cards = [...grid.querySelectorAll('.card[data-group-id]')];
@@ -735,8 +736,6 @@ function paintGroupBands() {
   svg.setAttribute('class', 'group-overlay');
   svg.setAttribute('width', grid.scrollWidth);
   svg.setAttribute('height', grid.scrollHeight);
-
-  const labels = document.createDocumentFragment();
 
   for (const [id, groupCards] of byGroup) {
     const info = groupBands.get(Number(id));
@@ -764,23 +763,10 @@ function paintGroupBands() {
     path.setAttribute('fill', color);
     path.setAttribute('fill-opacity', '0.16');
     svg.appendChild(path);
-
-    // Label vertical le long du bord gauche de la première rangée du groupe.
-    const label = document.createElement('div');
-    label.className = 'group-band-label';
-    label.textContent = info?.title || t('unnamedGroup');
-    label.style.setProperty('--group-color', color);
-    // Bord droit du label calé sur le bord gauche de la carte (largeur fixe
-    // en CSS), pour qu'il tienne dans la marge/gouttière sans mordre la carte.
-    label.style.left = `${rows[0].left - 10}px`;
-    label.style.top = `${rows[0].top}px`;
-    label.style.height = `${rows[0].bottom - rows[0].top}px`;
-    labels.appendChild(label);
   }
 
   // z-index négatif : l'overlay passe derrière les cartes (voir .grid isolate).
   grid.prepend(svg);
-  grid.append(labels);
 }
 
 async function renderTabs(normalTabs, stale) {
