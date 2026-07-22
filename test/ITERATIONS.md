@@ -53,3 +53,44 @@ Cohérence 4 · Accessibilité 5.
 
 Décision : itérer. Attaquer densité (conteneur dimensionné au contenu) et
 hiérarchie (en-tête de fenêtre renforcé).
+
+---
+
+## Iter 2 — conteneur dimensionné au contenu (`grid-column: span N`) — ÉCHEC
+
+Direction : au lieu de pleine largeur, le conteneur s'étend sur `span N`
+colonnes (N = nb d'onglets) pour laisser les onglets libres occuper le reste
+de la ligne. + en-tête de fenêtre renforcé + teinte calmée.
+
+Résultat : régression catastrophique. `span var(--span)` combiné à
+`auto-fill` + `1fr` + `aspect-ratio` casse la grille — colonnes géantes,
+cartes empilées verticalement, hauteurs délirantes. Tous les critères
+s'effondrent.
+
+Décision : REVENIR EN ARRIÈRE (consigne : ne pas empiler de rustines). On
+garde les bons apports (en-tête fenêtre, teinte) et on rétablit la pleine
+largeur. Pas de commit de cette direction.
+
+---
+
+## Iter 3 — retour pleine largeur + hiérarchie fenêtre + teinte calmée
+
+Direction : conteneur pleine largeur (revert du span), en-tête de fenêtre
+affirmé (texte clair 18px gras + filet de séparation pleine largeur), fond de
+groupe adouci (teinte 9 % + liseré 1px de la couleur).
+
+Scores : Délimitation 4 · Identité 5 · Hiérarchie 4 · Libres 5 · Densité 2 ·
+Cohérence 4 · Accessibilité 5.
+
+3 pires défauts :
+1. Densité : « Perso » (1 onglet) et « Groupe sans nom » (2) laissent une
+   grande zone teintée vide à droite ; le groupe bleu (6) laisse 2 cellules
+   vides. Gaspillage net vs la grille de base.
+2. Les onglets libres après un groupe (GitHub, Docs) repartent sur une
+   nouvelle rangée sous le conteneur : ok, mais accentue le vide.
+3. Le liseré coloré sur fond sombre reste discret pour les couleurs foncées
+   (rouge/violet).
+
+Décision : tous ≥ 4 sauf Densité. Itérer UNIQUEMENT sur la densité, sans
+casser le reste (le span est exclu). Piste iter-4 : onglets libres autorisés
+à combler la fin de rangée d'un groupe, OU petits groupes rendus compacts.

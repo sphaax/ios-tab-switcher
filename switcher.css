@@ -396,12 +396,25 @@ body[data-view="group-detail"] .grid {
 }
 
 /* En-tête de section par fenêtre Chrome (visible avec plusieurs fenêtres). */
+/* En-tête de fenêtre : niveau supérieur de la hiérarchie fenêtre > groupe >
+   onglet, donc plus affirmé que les en-têtes de groupe (texte clair, plus
+   grand, filet de séparation sur toute la largeur). */
 .window-label {
   grid-column: 1 / -1;
-  margin: 14px 4px 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 30px 2px 4px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f1f3f4;
+}
+
+.window-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .window-label:first-child {
@@ -481,7 +494,10 @@ body[data-view="group-detail"] .grid {
   gap: 12px;
   padding: 12px;
   border-radius: 22px;
-  background: color-mix(in srgb, var(--group-color) 13%, transparent);
+  /* Teinte discrète + liseré net de la couleur du groupe : la délimitation
+     tient au contour, pas à un aplat saturé (plus proche de l'esprit iOS). */
+  background: color-mix(in srgb, var(--group-color) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--group-color) 40%, transparent);
 }
 
 .group-box-head {
