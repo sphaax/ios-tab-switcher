@@ -101,7 +101,6 @@ let openGroupTitle = ''; // titre au moment du rendu, pour détecter un changeme
 let editingName = false; // gèle les re-renders pendant la saisie du nom
 let selfTab = null; // l'onglet du switcher lui-même
 let firstRender = true;
-let groupBands = null; // Map groupId -> {color,title} quand les fonds de groupe sont actifs, sinon null
 const knownTabIds = new Set(); // cartes déjà affichées : pas d'animation d'entrée
 // tabId -> { ts, url } : object URL mis en cache tant que la miniature n'a pas
 // changé, pour que les re-renders ne re-décodent pas toutes les images (flash).
@@ -552,11 +551,10 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupInfoById, variant, se
   // l'écran après le scroll initial), pas depuis le coin haut-gauche.
   const activeIndex = Math.max(0, orderedTabs.findIndex((tab) => isActiveMap.get(tab.id)));
 
-  // Conteneurs de groupe : n'ont de sens qu'en vue onglets normale, non
-  // filtrée (l'ordre de la grille doit refléter l'adjacence réelle des
-  // onglets, ce que ne garantissent ni la recherche ni la vue doublons).
+  // En-têtes de groupe : n'ont de sens qu'en vue onglets normale, non filtrée
+  // (l'ordre de la grille doit refléter l'adjacence réelle des onglets, ce que
+  // ne garantissent ni la recherche ni la vue doublons).
   const boxable = !!groupInfoById && !duplicatesOnly && !searchQuery;
-  groupBands = null; // ancien overlay SVG désactivé : les groupes sont des conteneurs
 
   const fragment = document.createDocumentFragment();
   let index = 0;
@@ -584,39 +582,35 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupInfoById, variant, se
     while (i < section.tabs.length) {
       const tab = section.tabs[i];
       if (canBox && tab.groupId !== -1) {
-        // Suite contiguë d'un même groupe -> conteneur nommé (pastille + nom +
-        // compteur) sur fond teinté, coins arrondis.
+        // Suite contiguë d'un même groupe : en-tête pleine largeur (pastille +
+        // nom + compteur) qui force un saut de ligne, puis les cartes du groupe
+        // restent des enfants directs de la grille — teintées de la couleur du
+        // groupe. Ainsi les onglets libres suivants comblent la fin de rangée
+        // (densité proche de la grille de base) tout en restant distincts.
         const start = i;
         while (i < section.tabs.length && section.tabs[i].groupId === tab.groupId) i++;
         const run = section.tabs.slice(start, i);
         const info = groupInfoById.get(tab.groupId);
         const color = info?.color || '#5f6368';
 
-        const box = document.createElement('section');
-        box.className = 'group-box';
-        box.style.setProperty('--group-color', color);
-
         const head = document.createElement('div');
-        head.className = 'group-box-head';
+        head.className = 'group-head';
+        head.style.setProperty('--group-color', color);
         const dot = document.createElement('span');
-        dot.className = 'group-box-dot';
+        dot.className = 'group-head-dot';
         const name = document.createElement('span');
-        name.className = 'group-box-name';
+        name.className = 'group-head-name';
         name.textContent = info?.title || t('unnamedGroup');
         if (!info?.title) name.classList.add('is-unnamed');
         const count = document.createElement('span');
-        count.className = 'group-box-count';
+        count.className = 'group-head-count';
         count.textContent = String(run.length);
         head.append(dot, name, count);
-        box.appendChild(head);
+        fragment.appendChild(head);
 
-        const body = document.createElement('div');
-        body.className = 'group-box-body';
         run.forEach((rtab, ri) =>
-          body.appendChild(makeCard(rtab, color, ri === 0, ri === run.length - 1))
+          fragment.appendChild(makeCard(rtab, color, ri === 0, ri === run.length - 1))
         );
-        box.appendChild(body);
-        fragment.appendChild(box);
         continue;
       }
       // Onglet hors conteneur : non groupé, ou vue à plat (doublons/privée).
@@ -678,140 +672,6 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupInfoById, variant, se
     firstRender = false;
     grid.querySelector('.card.is-active')?.scrollIntoView({ block: 'center' });
   }
-
-  // Fonds de groupe : dessinés APRÈS la mise en page, car la position réelle
-  // des cartes (et donc les sauts de ligne du groupe) dépend de la largeur.
-  paintGroupBands();
-}
-
-// ---------- Fonds de groupe (essai, dessinés après layout) ----------
-
-// Rayon des coins (convexes et concaves) et marge du fond autour des cartes.
-const BAND_RADIUS = 16;
-const BAND_PAD = 12;
-
-// Construit le tracé SVG d'un polygone rectiligne à coins arrondis. `points`
-// est fermé, orienté horaire, uniquement des angles droits ; le sens de l'arc
-// (convexe/concave) découle du signe du produit vectoriel à chaque sommet.
-function roundedRectilinearPath(points, r) {
-  // Retire les sommets dupliqués ou colinéaires (sinon rayon incohérent).
-  const pts = [];
-  for (const p of points) {
-    const last = pts[pts.length - 1];
-    if (!last || last.x !== p.x || last.y !== p.y) pts.push(p);
-  }
-  if (pts.length > 1) {
-    const first = pts[0];
-    const last = pts[pts.length - 1];
-    if (first.x === last.x && first.y === last.y) pts.pop();
-  }
-  const clean = [];
-  const n0 = pts.length;
-  for (let i = 0; i < n0; i++) {
-    const prev = pts[(i - 1 + n0) % n0];
-    const curr = pts[i];
-    const next = pts[(i + 1) % n0];
-    const cross = (curr.x - prev.x) * (next.y - curr.y) - (curr.y - prev.y) * (next.x - curr.x);
-    if (cross !== 0) clean.push(curr); // garde uniquement les vrais coins
-  }
-  const n = clean.length;
-  if (n < 3) return '';
-  let d = '';
-  for (let i = 0; i < n; i++) {
-    const prev = clean[(i - 1 + n) % n];
-    const curr = clean[i];
-    const next = clean[(i + 1) % n];
-    const len1 = Math.hypot(curr.x - prev.x, curr.y - prev.y);
-    const len2 = Math.hypot(next.x - curr.x, next.y - curr.y);
-    const rr = Math.min(r, len1 / 2, len2 / 2);
-    const u1x = (curr.x - prev.x) / len1;
-    const u1y = (curr.y - prev.y) / len1;
-    const u2x = (next.x - curr.x) / len2;
-    const u2y = (next.y - curr.y) / len2;
-    const p1x = curr.x - u1x * rr;
-    const p1y = curr.y - u1y * rr;
-    const p2x = curr.x + u2x * rr;
-    const p2y = curr.y + u2y * rr;
-    const cross = u1x * u2y - u1y * u2x;
-    // Polygone parcouru dans le sens horaire en repère écran (y vers le bas) :
-    // coin convexe (cross > 0) => arc horaire = sweep 1 ; concave => sweep 0.
-    const sweep = cross > 0 ? 1 : 0;
-    d += i === 0 ? `M ${p1x} ${p1y}` : ` L ${p1x} ${p1y}`;
-    d += ` A ${rr} ${rr} 0 0 ${sweep} ${p2x} ${p2y}`;
-  }
-  return d + ' Z';
-}
-
-// Contour d'un groupe = pile verticale de rectangles (un par rangée occupée),
-// se touchant sur leurs bords horizontaux. On le parcourt dans le sens horaire.
-function bandPolygon(rows) {
-  const R = rows.length;
-  const p = [];
-  p.push({ x: rows[0].left, y: rows[0].top });
-  p.push({ x: rows[0].right, y: rows[0].top });
-  for (let i = 0; i < R; i++) {
-    p.push({ x: rows[i].right, y: rows[i].bottom });
-    if (i < R - 1) p.push({ x: rows[i + 1].right, y: rows[i].bottom });
-  }
-  p.push({ x: rows[R - 1].left, y: rows[R - 1].bottom });
-  for (let i = R - 1; i >= 0; i--) {
-    p.push({ x: rows[i].left, y: rows[i].top });
-    if (i > 0) p.push({ x: rows[i - 1].left, y: rows[i].top });
-  }
-  return p;
-}
-
-function paintGroupBands() {
-  // On repart de zéro à chaque passe (overlay recréé sous les cartes).
-  grid.querySelector('.group-overlay')?.remove();
-  if (!groupBands) return;
-
-  const cards = [...grid.querySelectorAll('.card[data-group-id]')];
-  if (!cards.length) return;
-
-  const byGroup = new Map();
-  for (const card of cards) {
-    const id = card.dataset.groupId;
-    if (!byGroup.has(id)) byGroup.set(id, []);
-    byGroup.get(id).push(card);
-  }
-
-  const svgNS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(svgNS, 'svg');
-  svg.setAttribute('class', 'group-overlay');
-  svg.setAttribute('width', grid.scrollWidth);
-  svg.setAttribute('height', grid.scrollHeight);
-
-  for (const [id, groupCards] of byGroup) {
-    const info = groupBands.get(Number(id));
-    const color = info?.color || '#5f6368';
-
-    // Regroupe les cartes du groupe par rangée (même offsetTop).
-    const rowMap = new Map();
-    for (const card of groupCards) {
-      const key = Math.round(card.offsetTop);
-      if (!rowMap.has(key)) rowMap.set(key, []);
-      rowMap.get(key).push(card);
-    }
-    const rows = [...rowMap.values()]
-      .map((rowCards) => {
-        const left = Math.min(...rowCards.map((c) => c.offsetLeft)) - BAND_PAD;
-        const right = Math.max(...rowCards.map((c) => c.offsetLeft + c.offsetWidth)) + BAND_PAD;
-        const top = Math.min(...rowCards.map((c) => c.offsetTop)) - BAND_PAD;
-        const bottom = Math.max(...rowCards.map((c) => c.offsetTop + c.offsetHeight)) + BAND_PAD;
-        return { left, right, top, bottom };
-      })
-      .sort((a, b) => a.top - b.top);
-
-    const path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d', roundedRectilinearPath(bandPolygon(rows), BAND_RADIUS));
-    path.setAttribute('fill', color);
-    path.setAttribute('fill-opacity', '0.16');
-    svg.appendChild(path);
-  }
-
-  // z-index négatif : l'overlay passe derrière les cartes (voir .grid isolate).
-  grid.prepend(svg);
 }
 
 async function renderTabs(normalTabs, stale) {
@@ -1407,15 +1267,6 @@ function scheduleRefresh() {
   clearTimeout(refreshTimer);
   refreshTimer = setTimeout(refresh, 120);
 }
-
-// Au redimensionnement, le nombre de colonnes (et donc les sauts de ligne des
-// groupes) change : on redessine seulement les fonds de groupe, sans re-render.
-let bandRepaintTimer = null;
-window.addEventListener('resize', () => {
-  if (!groupBands) return;
-  clearTimeout(bandRepaintTimer);
-  bandRepaintTimer = setTimeout(paintGroupBands, 100);
-});
 
 chrome.tabs.onCreated.addListener(scheduleRefresh);
 chrome.tabs.onUpdated.addListener(scheduleRefresh);

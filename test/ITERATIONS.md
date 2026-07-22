@@ -94,3 +94,48 @@ Cohérence 4 · Accessibilité 5.
 Décision : tous ≥ 4 sauf Densité. Itérer UNIQUEMENT sur la densité, sans
 casser le reste (le span est exclu). Piste iter-4 : onglets libres autorisés
 à combler la fin de rangée d'un groupe, OU petits groupes rendus compacts.
+
+---
+
+## Iter 4 — conteneur `width: fit-content` (hug du contenu) — ÉCHEC
+
+Direction : garder le conteneur pleine largeur mais `width: fit-content` pour
+que la zone teintée épouse les cartes au lieu de gâcher toute la rangée.
+
+Résultat (constaté sur screenshot) : `fit-content` fait résoudre la grille
+interne `auto-fill` en min-content = UNE colonne. Chaque groupe empile ses
+cartes verticalement (Veille = 12 cartes l'une sous l'autre, page de 7710 px).
+Densité effondrée, cartes incohérentes.
+
+Décision : REVENIR EN ARRIÈRE. Constat : conteneur pleine largeur + cartes de
+taille constante + hug du contenu sont incompatibles (auto-fill exige une
+largeur définie). Abandon des conteneurs englobants pour la densité.
+
+---
+
+## Iter 5 — en-tête pleine largeur + cartes teintées dans le flux (RETENU)
+
+Direction : plus de conteneur. Un en-tête de groupe pleine largeur (pastille +
+nom + compteur) force un saut de ligne, puis les cartes du groupe restent des
+enfants directs de la grille, teintées de la couleur du groupe (fond de carte
+à 20 %), avec un liseré coloré sur la carte de début et de fin de groupe. Les
+onglets libres qui suivent comblent la fin de rangée du groupe.
+
+Scores : Délimitation 4 · Identité 5 · Hiérarchie 4 · Libres 5 · Densité 4 ·
+Cohérence 4 · Accessibilité 5. → **tous ≥ 4, arrêt.**
+
+Vérifié en 1920 ET 1280 : dans les deux cas, GitHub/Docs comblent la rangée du
+groupe rouge et Reddit celle de « Perso » — le gaspillage des petits groupes
+a disparu. L'onglet actif (en-tête bleu plein) reste distinct des cartes de
+groupe teintées.
+
+Défauts résiduels (acceptés, tous critères ≥ 4) :
+1. Un groupe suivi d'un AUTRE groupe (pas d'onglet libre entre) laisse encore
+   quelques cellules vides en fin de rangée (l'en-tête du groupe suivant force
+   un saut). Cas plus rare que groupe→libre.
+2. La teinte des cartes est volontairement discrète ; sur les couleurs claires
+   (jaune) elle est un peu moins évidente que sur bleu/violet.
+3. Les liserés début/fin ne marquent que les extrémités : une carte du milieu
+   dépend de l'en-tête au-dessus pour son appartenance (mitigé par la teinte).
+
+Décision : STOP. Direction retenue et committée.

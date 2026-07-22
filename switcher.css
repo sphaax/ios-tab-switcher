@@ -473,73 +473,61 @@ body[data-view="group-detail"] .grid {
   color: #fff;
 }
 
-/* Onglet dans un groupe : un mince anneau de la couleur du groupe (utile hors
-   conteneur, ex. vue doublons à plat). Dans un conteneur, il est redondant. */
+/* Onglet dans un groupe : fond de carte teinté de la couleur du groupe (le
+   cadre pâle relie visuellement les cartes d'un même groupe). L'aperçu garde
+   son propre fond ; seuls l'en-tête et la marge de la carte se teintent. */
 .card.in-group {
-  --shadow-group: 0 0 0 2px var(--group-color);
-}
-
-.group-box .card.in-group {
   --shadow-group: 0 0 transparent;
+  background: color-mix(in srgb, var(--group-color) 20%, var(--card-bg));
 }
 
-/* ---------- Conteneur de groupe ---------- */
+/* Un mince liseré au bord entrant/sortant marque le début et la fin du groupe
+   dans le flux, là où une carte libre pourrait suivre sur la même rangée. */
+.card.in-group.group-first {
+  box-shadow: inset 3px 0 0 var(--group-color);
+}
 
-/* Une suite d'onglets d'un même groupe : conteneur pleine largeur, fond
-   teinté de la couleur du groupe, en-tête pastille + nom + compteur. */
-.group-box {
+.card.in-group.group-last {
+  box-shadow: inset -3px 0 0 var(--group-color);
+}
+
+/* ---------- En-tête de groupe (pleine largeur, ouvre le groupe) ---------- */
+
+.group-head {
   grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 22px;
-  /* Teinte discrète + liseré net de la couleur du groupe : la délimitation
-     tient au contour, pas à un aplat saturé (plus proche de l'esprit iOS). */
-  background: color-mix(in srgb, var(--group-color) 9%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--group-color) 40%, transparent);
-}
-
-.group-box-head {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 2px 4px;
+  margin: 10px 2px -6px;
 }
 
-.group-box-dot {
-  width: 12px;
-  height: 12px;
+.group-head-dot {
+  width: 11px;
+  height: 11px;
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--group-color);
 }
 
-.group-box-name {
+.group-head-name {
   font-size: 14px;
   font-weight: 700;
   color: #fff;
 }
 
-.group-box-name.is-unnamed {
+.group-head-name.is-unnamed {
   font-style: italic;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.7);
 }
 
-.group-box-count {
+.group-head-count {
   padding: 1px 9px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--group-color) 55%, transparent);
   color: #fff;
   font-size: 12px;
   font-weight: 700;
-}
-
-.group-box-body {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
 }
 
 /* Navigation clavier (flèches). `:focus` plutôt que `:focus-visible` :
