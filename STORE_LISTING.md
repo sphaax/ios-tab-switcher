@@ -12,9 +12,9 @@ Tab Switcher (iOS Style)
 ```
 
 ### Summary (short description — max 132 characters)
-```
-See all your tabs as a grid of live previews — an iOS-style switcher with search, drag-to-group, and duplicate cleanup.
-```
+> ⚠️ **Not editable in the dashboard.** Because the extension is localized (`default_locale` + `"description": "__MSG_extDescription__"`), the Web Store greys out the Summary/Title fields and pulls them from the package. To change the summary, edit `extDescription` in **both** `_locales/en/messages.json` and `_locales/fr/messages.json`, rebuild, and re-upload. This same string is also the description shown on `chrome://extensions`.
+>
+> Current value (en): `iOS-style tab manager: see every tab as a grid of live previews, then search, group, pin, and clear duplicates.`
 
 ### Category
 ```

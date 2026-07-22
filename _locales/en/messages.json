@@ -1,6 +1,6 @@
 {
   "extDescription": {
-    "message": "An iOS-style tab switcher for desktop Chrome: a grid of cards with live previews of your tabs."
+    "message": "iOS-style tab manager: see every tab as a grid of live previews, then search, group, pin, and clear duplicates."
   },
   "actionTitle": {
     "message": "Open the tab switcher"
