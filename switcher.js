@@ -551,25 +551,8 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupInfoById, variant, se
   // l'écran après le scroll initial), pas depuis le coin haut-gauche.
   const activeIndex = Math.max(0, orderedTabs.findIndex((tab) => isActiveMap.get(tab.id)));
 
-  // En-têtes de groupe : n'ont de sens qu'en vue onglets normale, non filtrée
-  // (l'ordre de la grille doit refléter l'adjacence réelle des onglets, ce que
-  // ne garantissent ni la recherche ni la vue doublons).
-  const boxable = !!groupInfoById && !duplicatesOnly && !searchQuery;
-
   const fragment = document.createDocumentFragment();
   let index = 0;
-  const makeCard = (tab, groupColor, groupFirst, groupLast) =>
-    buildCard(tab, {
-      thumbSrc: thumbSrcFor(tab),
-      isActive: isActiveMap.get(tab.id),
-      groupColor,
-      // Le compteur de cascade avance carte par carte, quel que soit le nid.
-      index: Math.abs(index++ - activeIndex),
-      variant,
-      groupFirst,
-      groupLast,
-    });
-
   for (const section of sectionList) {
     if (section.label) {
       const label = document.createElement('h2');
@@ -577,58 +560,29 @@ function renderCards(tabs, { thumbSrcFor, lastActive, groupInfoById, variant, se
       label.textContent = section.label;
       fragment.appendChild(label);
     }
-    const canBox = boxable && section.contiguousGroups;
-    let i = 0;
-    while (i < section.tabs.length) {
-      const tab = section.tabs[i];
-      if (canBox && tab.groupId !== -1) {
-        // Suite contiguë d'un même groupe : en-tête pleine largeur (pastille +
-        // nom + compteur) qui force un saut de ligne, puis les cartes du groupe
-        // restent des enfants directs de la grille — teintées de la couleur du
-        // groupe. Ainsi les onglets libres suivants comblent la fin de rangée
-        // (densité proche de la grille de base) tout en restant distincts.
-        const start = i;
-        while (i < section.tabs.length && section.tabs[i].groupId === tab.groupId) i++;
-        const run = section.tabs.slice(start, i);
-        const info = groupInfoById.get(tab.groupId);
-        const color = info?.color || '#5f6368';
-
-        const head = document.createElement('div');
-        head.className = 'group-head';
-        head.style.setProperty('--group-color', color);
-        const dot = document.createElement('span');
-        dot.className = 'group-head-dot';
-        const name = document.createElement('span');
-        name.className = 'group-head-name';
-        name.textContent = info?.title || t('unnamedGroup');
-        if (!info?.title) name.classList.add('is-unnamed');
-        const count = document.createElement('span');
-        count.className = 'group-head-count';
-        count.textContent = String(run.length);
-        head.append(dot, name, count);
-        fragment.appendChild(head);
-
-        run.forEach((rtab, ri) =>
-          fragment.appendChild(makeCard(rtab, color, ri === 0, ri === run.length - 1))
-        );
-        continue;
-      }
-      // Onglet hors conteneur : non groupé, ou vue à plat (doublons/privée).
-      // Les bords de groupe restent calculés pour le drag & drop.
-      const prevTab = section.contiguousGroups ? section.tabs[i - 1] : null;
-      const nextTab = section.contiguousGroups ? section.tabs[i + 1] : null;
+    // Grille continue : les cartes d'un groupe restent des enfants directs,
+    // simplement teintées de la couleur du groupe (aucun en-tête, aucun saut
+    // de ligne). Les bords de groupe (première/dernière carte de la suite)
+    // servent au liseré et au drag & drop, et n'ont de sens que si l'ordre de
+    // la section reflète l'adjacence réelle (pas la vue doublons).
+    section.tabs.forEach((tab, position) => {
+      const prevTab = section.contiguousGroups ? section.tabs[position - 1] : null;
+      const nextTab = section.contiguousGroups ? section.tabs[position + 1] : null;
       const groupColor =
         groupInfoById && tab.groupId !== -1 ? groupInfoById.get(tab.groupId)?.color || null : null;
       fragment.appendChild(
-        makeCard(
-          tab,
+        buildCard(tab, {
+          thumbSrc: thumbSrcFor(tab),
+          isActive: isActiveMap.get(tab.id),
           groupColor,
-          tab.groupId !== -1 && prevTab?.groupId !== tab.groupId,
-          tab.groupId !== -1 && nextTab?.groupId !== tab.groupId
-        )
+          index: Math.abs(index - activeIndex),
+          variant,
+          groupFirst: tab.groupId !== -1 && prevTab?.groupId !== tab.groupId,
+          groupLast: tab.groupId !== -1 && nextTab?.groupId !== tab.groupId,
+        })
       );
-      i++;
-    }
+      index++;
+    });
   }
 
   // Les cartes sont entièrement recréées à chaque rendu (replaceChildren) :

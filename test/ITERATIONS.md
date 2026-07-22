@@ -139,3 +139,24 @@ Défauts résiduels (acceptés, tous critères ≥ 4) :
    dépend de l'en-tête au-dessus pour son appartenance (mitigé par la teinte).
 
 Décision : STOP. Direction retenue et committée.
+
+---
+
+## Iter 6 — simplification demandée : groupes par couleur seule, grille continue
+
+Direction (demande utilisateur) : garder la teinte de couleur des cartes de
+groupe mais SUPPRIMER les en-têtes (pastille + nom + compteur) et les sauts de
+ligne — la grille redevient continue, les cartes de groupe sont de simples
+enfants directs teintés (liseré début/fin conservé). Côté onglet actif :
+retirer l'outline bleu ; l'actif est désormais signalé par l'en-tête bleu du
+cadre. Navigation clavier : retirer l'anneau blanc de focus ; la carte
+focalisée adopte le même en-tête bleu que l'actif.
+
+Vérifié en 1920 et 1280 : grille continue sur les deux, couleurs de groupe
+préservées, actif = en-tête bleu sans outline. Nettoyage : suppression du
+markup/CSS d'en-tête de groupe et des règles `outline-color` mortes
+(is-active incognito/teinté).
+
+Note : ce choix privilégie la sobriété/continuité au détriment de l'Identité
+(plus de nom de groupe visible dans la grille) — arbitrage assumé par
+l'utilisateur ; le nom reste accessible en vue « groupes » et en détail.
